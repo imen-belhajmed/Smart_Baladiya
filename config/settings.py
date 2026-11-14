@@ -19,7 +19,7 @@ INSTALLED_APPS = [
     # ===== Socle commun =====
     'accounts',
     # ===== Modules (chaque membre décommente SA ligne) =====
-    #'demandes', # Module 1 - Imen
+    'demandes', # Module 1 - Imen
     # 'marches',   # Module 2 - Molka
     # 'incidents', # Module 3 - Zaineb
     # 'forum',     # Module 4 - Nour
@@ -85,3 +85,8 @@ AUTH_USER_MODEL = 'accounts.User'
 LOGIN_URL = 'accounts:login'
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'accounts:login'
+
+
+# Gestion des fichiers médias (uploads des utilisateurs)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5" style="max-width: 700px;">
+    <h2 class="mb-4 text-center">Vérification de l'authenticité d'un document</h2>
+    
+    <form method="get" class="input-group mb-4 shadow-sm">
+        <input type="text" name="code" class="form-control" placeholder="Entrez l'empreinte unique (UUID du document)..." value="{{ code }}">
+        <button class="btn btn-dark" type="submit">Vérifier</button>
+    </form>
+
+    {% if erreur %}
+        <div class="alert alert-danger">{{ erreur }}</div>
+    {% endif %}
+
+    {% if demande %}
+        <div class="card border-success shadow">
+            <div class="card-header bg-success text-white">Document Authentique & Validé</div>
+            <div class="card-body">
+                <p><strong>Type de document :</strong> {{ demande.get_type_document_display }}</p>
+                <p><strong>Citoyen :</strong> {{ demande.citoyen.username }}</p>
+                <p><strong>Statut actuel :</strong> {{ demande.get_statut_display }}</p>
+                <p><strong>Date de validation :</strong> {{ demande.date_mise_a_jour|date:"d/m/Y H:i" }}</p>
+                <p class="mb-0"><strong>Empreinte :</strong> <code>{{ demande.empreinte_verification }}</code></p>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

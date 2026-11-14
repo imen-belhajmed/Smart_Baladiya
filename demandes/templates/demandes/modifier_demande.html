@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4" style="max-width: 600px;">
+    <div class="card shadow p-4">
+        <h3>Modifier ma demande</h3>
+        <form method="post" enctype="multipart/form-data" class="mt-3">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-warning w-100">Mettre à jour</button>
+        </form>
+        <div class="mt-3 text-center">
+            <a href="{% url 'demandes:liste' %}">Retour</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

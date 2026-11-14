@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4" style="max-width: 600px;">
+    <div class="card shadow p-4">
+        <h3>Traiter la demande de {{ demande.citoyen.username }}</h3>
+        <p><strong>Document :</strong> {{ demande.get_type_document_display }}</p>
+        <p><strong>Motif :</strong> {{ demande.motif|default:"Aucun" }}</p>
+
+        <form method="post" class="mt-3">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label">Changer le statut :</label>
+                <select name="statut" class="form-select">
+                    {% for code, libelle in demande.STATUT_CHOICES %}
+                        <option value="{{ code }}" {% if demande.statut == code %}selected{% endif %}>{{ libelle }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Observation / Commentaire de l'agent :</label>
+                <textarea name="commentaire_agent" rows="3" class="form-control">{{ demande.commentaire_agent }}</textarea>
+            </div>
+            <button type="submit" class="btn btn-success w-100">Enregistrer</button>
+        </form>
+        <div class="mt-3 text-center">
+            <a href="{% url 'demandes:tableau_agent' %}">Retour à l'espace agent</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

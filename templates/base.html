@@ -10,7 +10,14 @@
 <nav class="navbar">
     <a class="brand" href="{% url 'home' %}">Smart Baladiya</a>
     <div class="links">
-        {#<a href="{% url 'demandes:list' %}">Demandes</a>}
+        {% if user.is_authenticated %}
+            {% if user.is_staff %}
+                <a href="{% url 'demandes:tableau_agent' %}">Espace Agent (Demandes)</a>
+            {% else %}
+                <a href="{% url 'demandes:liste' %}">Mes Demandes</a>
+            {% endif %}
+        {% endif %}
+        <a href="{% url 'demandes:verifier' %}">Vérifier Document</a>
         {# <a href="{% url 'marches:list' %}">Marchés</a> #}
         {# <a href="{% url 'incidents:list' %}">Incidents</a> #}
         {# <a href="{% url 'forum:list' %}">Forum</a> #}
@@ -19,8 +26,8 @@
     </div>
     <div class="user">
         {% if user.is_authenticated %}
-            {{ user }} ({{ user.get_role_display }})
-            <form method="post" action="{% url 'accounts:logout' %}">
+            {{ user }} ({{ user.get_role_display|default:"Utilisateur" }})
+            <form method="post" action="{% url 'accounts:logout' %}" style="display:inline;">
                 {% csrf_token %}
                 <button class="btn btn-petit" type="submit">Déconnexion</button>
             </form>
