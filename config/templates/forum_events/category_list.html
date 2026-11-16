@@ -1,0 +1,25 @@
+{% extends "forum_events/base.html" %}
+{% block title %}Categories{% endblock %}
+{% block content %}
+  <h1>Categories</h1>
+  {% if user.is_staff %}<div class="actions"><a class="button" href="{% url 'forum:category-create' %}">Add category</a></div>{% endif %}
+  {% for category in categories %}
+    <article class="card">
+      <h2><a href="{% url 'forum:category-threads' category.pk %}">{{ category.name }}</a></h2>
+      <p>{{ category.description|default:"No description." }}</p>
+      <div class="meta">
+        Discussions: {% if category.allow_discussions %}allowed{% else %}disabled{% endif %}
+        · Events: {% if category.allow_events %}allowed{% else %}disabled{% endif %}
+        · {{ category.threads.count }} thread{{ category.threads.count|pluralize }}
+      </div>
+      {% if user.is_staff %}
+        <div class="actions">
+          <a class="button secondary" href="{% url 'forum:category-update' category.pk %}">Edit</a>
+          <a class="button danger" href="{% url 'forum:category-delete' category.pk %}">Delete</a>
+        </div>
+      {% endif %}
+    </article>
+  {% empty %}
+    <p>No categories yet.</p>
+  {% endfor %}
+{% endblock %}

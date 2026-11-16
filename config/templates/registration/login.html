@@ -1,0 +1,16 @@
+{% extends "forum_events/base.html" %}
+{% block title %}Log in{% endblock %}
+{% block content %}
+  <h1>Log in</h1>
+  <section class="form-card">
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <input type="hidden" name="next" value="{{ next }}">
+      <div class="actions">
+        <button type="submit">Log in</button>
+        <a class="button secondary" href="{% url 'signup' %}">Create an account</a>
+      </div>
+    </form>
+  </section>
+{% endblock %}

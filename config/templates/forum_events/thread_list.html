@@ -1,0 +1,79 @@
+{% extends "forum_events/base.html" %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+  <div class="forum-page-heading">
+    <div>
+      {% if category %}<a class="back-link" href="{% url 'forum:thread-list' %}">← All discussions</a>{% endif %}
+      <h1>{{ page_title }}</h1>
+      <p>{% if category and category.description %}{{ category.description }}{% else %}Join your neighbors in sharing ideas, questions, and local updates.{% endif %}</p>
+    </div>
+    {% if user.is_staff %}
+      <a class="button new-discussion-button" href="{% url 'forum:thread-create' %}">{{ create_label }}</a>
+    {% endif %}
+  </div>
+  {% if not category and not is_event_list %}
+    {% include "forum_events/_upcoming_events.html" %}
+  {% endif %}
+  <div class="forum-layout">
+    <section class="discussion-feed" aria-label="{% if category %}{{ category.name }} discussions{% else %}Latest discussions{% endif %}">
+      <div class="feed-heading">
+        <div>
+          <h2>{% if is_event_list %}Upcoming events{% elif category %}{{ category.name }} discussions{% else %}Latest discussions{% endif %}</h2>
+          {% if search_query %}
+            <p>Search results for “{{ search_query }}”</p>
+          {% elif is_event_list %}
+            <p>Find an event happening in your community</p>
+          {% else %}
+            <p>Recent conversations from the community</p>
+          {% endif %}
+        </div>
+        {% if search_query %}<a class="clear-search" href="{% url 'forum:thread-list' %}">Clear search</a>{% endif %}
+      </div>
+      {% for thread in threads %}
+        {% include "forum_events/_thread_card.html" %}
+      {% empty %}
+        <div class="empty-state">
+          <h3>{% if search_query %}No matching {{ page_title|lower }}{% elif is_event_list %}No upcoming events yet{% else %}No discussions yet{% endif %}</h3>
+          <p>{% if search_query %}Try another search, or clear the search to browse all discussions.{% elif is_event_list %}Check back soon for events happening in your community.{% else %}Check back soon for conversations from your community.{% endif %}</p>
+          {% if search_query %}<a class="button secondary" href="{% url 'forum:thread-list' %}">Browse all discussions</a>{% endif %}
+        </div>
+      {% endfor %}
+    </section>
+    {% if not category and not is_event_list and categories %}
+      <aside class="forum-sidebar" aria-label="Forum categories">
+        <section class="sidebar-section">
+          <div class="sidebar-heading">
+            <h2>Explore forums</h2>
+            <a href="{% url 'forum:category-list' %}">All</a>
+          </div>
+          <a class="sidebar-category all-categories" href="{% url 'forum:thread-list' %}">
+            <span class="category-dot" aria-hidden="true"></span>
+            <span class="sidebar-category-name">All discussions</span>
+            <span class="sidebar-check" aria-hidden="true">✓</span>
+          </a>
+          {% for category in categories %}
+            <div class="sidebar-category-group">
+              <a class="sidebar-category" href="{% url 'forum:category-threads' category.pk %}">
+                <span class="category-dot" aria-hidden="true"></span>
+                <span class="sidebar-category-name">{{ category.name }}</span>
+                <span class="sidebar-count">{{ category.thread_count }}</span>
+              </a>
+              {% if category.preview_threads and not search_query %}
+                <details class="category-latest">
+                  <summary>Show latest 5 threads</summary>
+                  <ul>
+                    {% for thread in category.preview_threads %}
+                      <li><a href="{% url 'forum:thread-detail' thread.pk %}">{{ thread.title }}</a></li>
+                    {% empty %}
+                      <li>No threads yet.</li>
+                    {% endfor %}
+                  </ul>
+                </details>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </section>
+      </aside>
+    {% endif %}
+  </div>
+{% endblock %}
