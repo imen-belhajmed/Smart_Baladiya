@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ alerte.titre }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <div style="display: flex; align-items: center; gap: 0.7rem; margin-bottom: 0.5rem;">
+            <span class="badge {{ alerte.badge_classe }}">{{ alerte.get_niveau_urgence_display }}</span>
+            {% if alerte.est_expiree %}
+                <span class="badge badge-expiree">Expirée</span>
+            {% else %}
+                <span class="badge badge-validee">Active</span>
+            {% endif %}
+        </div>
+        <h1>{{ alerte.titre }}</h1>
+        <p class="sous-titre">
+            Publié le {{ alerte.date_publication|date:"d/m/Y à H:i" }} par {{ alerte.auteur.get_full_name|default:alerte.auteur.username }}
+        </p>
+    </div>
+    <div>
+        <a href="{% url 'actualites:list' %}" class="btn">← Retour à la liste</a>
+    </div>
+</div>
+
+<div class="card">
+    <div style="font-size: 1.05rem; line-height: 1.7; white-space: pre-line; margin-bottom: 1.5rem;">
+        {{ alerte.contenu }}
+    </div>
+
+    <hr style="border: 0; border-top: 1px solid var(--bord); margin: 1.5rem 0;">
+
+    <dl class="details">
+        <dt>Statut :</dt>
+        <dd>
+            {% if alerte.est_expiree %}
+                <span class="badge badge-expiree">Expirée depuis le {{ alerte.date_expiration|date:"d/m/Y à H:i" }}</span>
+            {% else %}
+                <span class="badge badge-validee">En cours jusqu'au {{ alerte.date_expiration|date:"d/m/Y à H:i" }}</span>
+            {% endif %}
+        </dd>
+
+        <dt>Auteur :</dt>
+        <dd>{{ alerte.auteur.get_full_name|default:alerte.auteur.username }} ({{ alerte.auteur.get_role_display }})</dd>
+
+        <dt>Pièce jointe :</dt>
+        <dd>
+            {% if alerte.piece_jointe %}
+                <a href="{{ alerte.piece_jointe.url }}" class="btn btn-petit btn-bleu" target="_blank" download>
+                    📥 Télécharger le document joint
+                </a>
+            {% else %}
+                <span style="color: var(--gris);">Aucune pièce jointe</span>
+            {% endif %}
+        </dd>
+    </dl>
+</div>
+{% endblock %}
+

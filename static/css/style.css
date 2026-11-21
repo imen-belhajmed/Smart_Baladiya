@@ -40,6 +40,11 @@ tr:last-child td{border-bottom:0}
 .badge-en_attente{background:var(--orange-bg); color:var(--orange)}
 .badge-validee{background:var(--vert-bg); color:var(--vert)}
 .badge-annulee{background:var(--gris-bg); color:var(--gris)}
+.badge-faible{background:#E8EFFA; color:var(--bleu)}
+.badge-moyenne{background:var(--orange-bg); color:var(--orange)}
+.badge-elevee{background:#FDE8E4; color:#C0392B}
+.badge-critique{background:#900C19; color:#fff}
+.badge-expiree{background:var(--gris-bg); color:var(--gris)}
 form.formulaire{max-width:600px}
 form.formulaire p{margin:0 0 1.1rem}
 form.formulaire label{display:block; font-weight:600; margin-bottom:.3rem}

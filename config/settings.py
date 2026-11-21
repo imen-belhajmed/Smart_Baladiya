@@ -23,7 +23,7 @@ INSTALLED_APPS = [
     # 'marches',   # Module 2 - Molka
     # 'incidents', # Module 3 - Zaineb
     # 'forum',     # Module 4 - Nour
-    # 'actualites',# Module 5 - Ribel
+    'actualites',# Module 5 - Ribel
     # 'dechets',   # Module 6 - Mahmoud
 ]
 
@@ -85,3 +85,7 @@ AUTH_USER_MODEL = 'accounts.User'
 LOGIN_URL = 'accounts:login'
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'accounts:login'
+
+# ===== Fichiers médias (uploads) =====
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

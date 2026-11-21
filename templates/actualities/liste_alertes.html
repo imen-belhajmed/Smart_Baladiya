@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}Actualités & Alertes officielles{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Alertes & Communications officielles</h1>
+        <p class="sous-titre">Consultez les alertes, arrêtés municipaux et consignes urgentes de votre commune.</p>
+    </div>
+    {% if user.is_authenticated and user.est_agent or user.is_staff %}
+    <div>
+        <a href="{% url 'actualites:creer_alerte' %}" class="btn btn-rouge">
+            + Publier une alerte
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="filtres">
+    <a href="{% url 'actualites:list' %}" class="btn btn-petit {% if not urgence_active %}btn-bleu{% endif %}">
+        Toutes
+    </a>
+    {% for val, label in urgences %}
+        <a href="{% url 'actualites:list' %}?urgence={{ val }}"
+           class="btn btn-petit {% if urgence_active == val %}btn-bleu{% endif %}">
+            {{ label }}
+        </a>
+    {% endfor %}
+</div>
+
+{% if alertes %}
+    <div style="display: flex; flex-direction: column; gap: 1rem;">
+        {% for alerte in alertes %}
+            <article class="card" style="border-left: 5px solid {% if alerte.niveau_urgence == 'critique' %}#900C19{% elif alerte.niveau_urgence == 'elevee' %}#C0392B{% elif alerte.niveau_urgence == 'moyenne' %}#9A6212{% else %}#1F4E9C{% endif %};">
+                <div class="page-header" style="margin-bottom: 0.5rem;">
+                    <div style="display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap;">
+                        <span class="badge {{ alerte.badge_classe }}">{{ alerte.get_niveau_urgence_display }}</span>
+                        {% if alerte.est_expiree %}
+                            <span class="badge badge-expiree">Expirée</span>
+                        {% endif %}
+                        <h2 style="margin: 0;">
+                            <a href="{% url 'actualites:detail_alerte' alerte.pk %}" style="text-decoration: none; color: inherit;">
+                                {{ alerte.titre }}
+                            </a>
+                        </h2>
+                    </div>
+                    <small style="color: var(--gris);">
+                        Publié le {{ alerte.date_publication|date:"d/m/Y à H:i" }} par {{ alerte.auteur }}
+                    </small>
+                </div>
+
+                <p style="margin: 0.5rem 0 1rem; color: var(--texte);">
+                    {{ alerte.contenu|truncatewords:45 }}
+                </p>
+
+                <div class="actions" style="margin-top: 0.5rem; justify-content: space-between;">
+                    <div style="font-size: 0.88rem; color: var(--gris);">
+                        📅 Valable jusqu'au : <strong>{{ alerte.date_expiration|date:"d/m/Y à H:i" }}</strong>
+                        {% if alerte.piece_jointe %}
+                            &bull; 📎 <a href="{{ alerte.piece_jointe.url }}" target="_blank">Pièce jointe disponible</a>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <a href="{% url 'actualites:detail_alerte' alerte.pk %}" class="btn btn-petit btn-bleu">
+                            Lire la suite →
+                        </a>
+                    </div>
+                </div>
+            </article>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="card vide">
+        <p>Aucune alerte officielle n'a été publiée pour le moment.</p>
+        {% if user.is_authenticated and user.est_agent or user.is_staff %}
+            <p>
+                <a href="{% url 'actualites:creer_alerte' %}" class="btn btn-rouge">
+                    Publier la première alerte
+                </a>
+            </p>
+        {% endif %}
+    </div>
+{% endif %}
+{% endblock %}
+

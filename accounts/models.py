@@ -21,5 +21,10 @@ class User(AbstractUser):
     def est_agent(self):
         return self.is_superuser or self.role in (self.Role.AGENT, self.Role.ADMIN)
 
+    def save(self, *args, **kwargs):
+        if self.role in (self.Role.AGENT, self.Role.ADMIN):
+            self.is_staff = True
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.get_full_name() or self.username

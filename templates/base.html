@@ -1,4 +1,6 @@
-{% load static %}<!DOCTYPE html>
+
+{% load static %}
+<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -9,26 +11,32 @@
 <body>
 <nav class="navbar">
     <a class="brand" href="{% url 'home' %}">Smart Baladiya</a>
+
     <div class="links">
-        {#<a href="{% url 'demandes:list' %}">Demandes</a>}
+        {# <a href="{% url 'demandes:list' %}">Demandes</a> #}
         {# <a href="{% url 'marches:list' %}">Marchés</a> #}
         {# <a href="{% url 'incidents:list' %}">Incidents</a> #}
         {# <a href="{% url 'forum:list' %}">Forum</a> #}
-        {# <a href="{% url 'actualites:list' %}">Actualités</a> #}
+        <a href="{% url 'actualites:list' %}">Actualités & Alertes</a>
         {# <a href="{% url 'dechets:list' %}">Déchets</a> #}
     </div>
+
     <div class="user">
         {% if user.is_authenticated %}
             {{ user }} ({{ user.get_role_display }})
+
             <form method="post" action="{% url 'accounts:logout' %}">
                 {% csrf_token %}
-                <button class="btn btn-petit" type="submit">Déconnexion</button>
+                <button class="btn btn-petit" type="submit">
+                    Déconnexion
+                </button>
             </form>
         {% else %}
             <a href="{% url 'accounts:login' %}">Connexion</a>
         {% endif %}
     </div>
 </nav>
+
 <main class="container">
     {% if messages %}
         <ul class="messages">
@@ -37,6 +45,7 @@
             {% endfor %}
         </ul>
     {% endif %}
+
     {% block content %}{% endblock %}
 </main>
 </body>
