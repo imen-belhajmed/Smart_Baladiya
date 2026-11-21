@@ -20,7 +20,7 @@ INSTALLED_APPS = [
     'accounts',
     # ===== Modules (chaque membre décommente SA ligne) =====
     #'demandes', # Module 1 - Imen
-    # 'marches',   # Module 2 - Molka
+    'marches',   # Module 2 - Molka
     # 'incidents', # Module 3 - Zaineb
     # 'forum',     # Module 4 - Nour
     # 'actualites',# Module 5 - Ribel
