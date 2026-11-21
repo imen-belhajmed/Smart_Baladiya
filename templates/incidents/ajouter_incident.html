@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container my-4" style="max-width: 700px;">
+  <h2 class="mb-3">Signaler un incident</h2>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_div }}
+    <button type="submit" class="btn btn-primary mt-3">Envoyer le signalement</button>
+    <a href="{% url 'incidents:liste' %}" class="btn btn-outline-secondary mt-3">Annuler</a>
+  </form>
+</div>
+{% endblock %}
