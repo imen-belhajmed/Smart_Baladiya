@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}Notifications{% endblock %}
+{% block content %}
+<div class="page-header"><h1>Notifications</h1></div>
+{% for n in notifs %}
+    <a class="card dm-notif {% if not n.lue %}non-lue{% endif %}" href="{{ n.lien|default:'#' }}">
+        <span>{{ n.message }}</span>
+        <small>{{ n.date_creation|date:"d/m/Y H:i" }}</small>
+    </a>
+{% empty %}
+    <div class="card vide">Aucune notification.</div>
+{% endfor %}
+{% endblock %}

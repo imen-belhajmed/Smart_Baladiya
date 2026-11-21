@@ -1,28 +1,36 @@
 {% extends 'base.html' %}
-
+{% block title %}Vérifier un document{% endblock %}
 {% block content %}
-<div class="container mt-5" style="max-width: 700px;">
-    <h2 class="mb-4 text-center">Vérification de l'authenticité d'un document</h2>
-    
-    <form method="get" class="input-group mb-4 shadow-sm">
-        <input type="text" name="code" class="form-control" placeholder="Entrez l'empreinte unique (UUID du document)..." value="{{ code }}">
-        <button class="btn btn-dark" type="submit">Vérifier</button>
-    </form>
+<div style="max-width:720px; margin:0 auto">
+    <h1 style="text-align:center">Vérification de l'authenticité d'un document</h1>
+    <p class="sous-titre" style="text-align:center; margin-bottom:1.2rem">Saisissez le code de la demande et, pour une vérification complète, joignez le document reçu : son empreinte SHA-256 est comparée à celle enregistrée par la commune.</p>
 
-    {% if erreur %}
-        <div class="alert alert-danger">{{ erreur }}</div>
+    <div class="card">
+        <form method="post" enctype="multipart/form-data" class="formulaire" style="max-width:none">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button class="btn btn-bleu" type="submit">Vérifier</button>
+        </form>
+    </div>
+
+    {% if resultat == 'authentique' %}
+        <div class="card dm-ok"><h2>✔ Document authentique</h2><p>Le fichier correspond exactement au document délivré par la commune.</p></div>
+    {% elif resultat == 'modifie' %}
+        <div class="card dm-ko"><h2>✘ Document non conforme</h2><p>Le fichier ne correspond pas au document délivré (modifié, ou demande non validée).</p></div>
+    {% elif resultat == 'inconnu' %}
+        <div class="card dm-ko"><h2>✘ Code inconnu</h2><p>Aucune demande ne correspond à ce code.</p></div>
     {% endif %}
 
-    {% if demande %}
-        <div class="card border-success shadow">
-            <div class="card-header bg-success text-white">Document Authentique & Validé</div>
-            <div class="card-body">
-                <p><strong>Type de document :</strong> {{ demande.get_type_document_display }}</p>
-                <p><strong>Citoyen :</strong> {{ demande.citoyen.username }}</p>
-                <p><strong>Statut actuel :</strong> {{ demande.get_statut_display }}</p>
-                <p><strong>Date de validation :</strong> {{ demande.date_mise_a_jour|date:"d/m/Y H:i" }}</p>
-                <p class="mb-0"><strong>Empreinte :</strong> <code>{{ demande.empreinte_verification }}</code></p>
-            </div>
+    {% if demande and resultat != 'inconnu' %}
+        <div class="card">
+            <h2>Demande trouvée</h2>
+            <dl class="details">
+                <dt>Type de document</dt><dd>{{ demande.get_type_document_display }}</dd>
+                <dt>Demandeur</dt><dd>{{ citoyen_masque }}</dd>
+                <dt>Statut</dt><dd><span class="badge badge-{{ demande.statut }}">{{ demande.get_statut_display }}</span></dd>
+                <dt>Dernière mise à jour</dt><dd>{{ demande.date_mise_a_jour|date:"d/m/Y H:i" }}</dd>
+                {% if demande.empreinte_document %}<dt>Empreinte SHA-256</dt><dd><span class="dm-hash">{{ demande.empreinte_document }}</span></dd>{% endif %}
+            </dl>
         </div>
     {% endif %}
 </div>

@@ -1,34 +1,56 @@
 {% extends 'base.html' %}
-
+{% block title %}Espace agent{% endblock %}
 {% block content %}
-<div class="container mt-4">
-    <h2>Espace Agent Municipal - Gestion des Demandes</h2>
-    <hr>
-    <table class="table table-striped align-middle">
-        <thead class="table-dark">
-            <tr>
-                <th>Citoyen</th>
-                <th>Type de document</th>
-                <th>Statut actuel</th>
-                <th>Date</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for d in demandes %}
-            <tr>
-                <td>{{ d.citoyen.username }}</td>
-                <td>{{ d.get_type_document_display }}</td>
-                <td><span class="badge bg-secondary">{{ d.get_statut_display }}</span></td>
-                <td>{{ d.date_creation|date:"d/m/Y H:i" }}</td>
-                <td>
-                    <a href="{% url 'demandes:traiter_demande' d.pk %}" class="btn btn-sm btn-primary">Traiter</a>
-                </td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="5" class="text-center">Aucune demande enregistrée.</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<div class="page-header">
+    <div>
+        <h1>Espace agent municipal – Gestion des demandes</h1>
+        <p class="sous-titre">Validez, rejetez ou supprimez les demandes des citoyens.</p>
+    </div>
 </div>
+
+<div class="dm-grille">
+    <div class="card dm-kpi"><strong>{{ stats.total }}</strong><span>Total</span></div>
+    <div class="card dm-kpi"><strong>{{ stats.en_attente }}</strong><span>En attente</span></div>
+    <div class="card dm-kpi"><strong>{{ stats.en_cours }}</strong><span>En cours</span></div>
+    <div class="card dm-kpi"><strong>{{ stats.validee }}</strong><span>Validées</span></div>
+    <div class="card dm-kpi"><strong>{{ stats.rejetee }}</strong><span>Rejetées</span></div>
+</div>
+
+<form method="get" class="filtres">
+    <input type="text" name="q" value="{{ q }}" placeholder="Rechercher un citoyen ou un motif…" style="max-width:320px">
+    <select name="statut" style="max-width:240px">
+        <option value="">Tous les statuts</option>
+        {% for code, libelle in statuts %}<option value="{{ code }}" {% if statut == code %}selected{% endif %}>{{ libelle }}</option>{% endfor %}
+    </select>
+    <button class="btn btn-bleu" type="submit">Filtrer</button>
+</form>
+
+<table>
+    <thead>
+        <tr><th>Citoyen</th><th>Type de document</th><th>Statut</th><th>Prévu avant</th><th>Créée le</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+    {% for d in demandes %}
+        <tr>
+            <td>{{ d.citoyen.username }}</td>
+            <td>{{ d.get_type_document_display }}</td>
+            <td>
+                <span class="badge badge-{{ d.statut }}">{{ d.get_statut_display }}</span>
+                {% if d.en_retard %}<span class="badge badge-retard">En retard</span>{% endif %}
+            </td>
+            <td>{{ d.date_prevue|date:"d/m/Y H:i" }}</td>
+            <td>{{ d.date_creation|date:"d/m/Y H:i" }}</td>
+            <td>
+                <div class="actions" style="margin-top:0">
+                    <a href="{% url 'demandes:detail' d.pk %}" class="btn btn-petit">Voir</a>
+                    <a href="{% url 'demandes:traiter_demande' d.pk %}" class="btn btn-petit btn-bleu">Traiter</a>
+                    <a href="{% url 'demandes:supprimer' d.pk %}" class="btn btn-petit btn-rouge">Supprimer</a>
+                </div>
+            </td>
+        </tr>
+    {% empty %}
+        <tr><td colspan="6" class="vide">Aucune demande.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
 {% endblock %}

@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ alerte.titre }} - Smart Baladiya{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <div style="display: flex; align-items: center; gap: 0.7rem; margin-bottom: 0.5rem; flex-wrap: wrap;">
+            <span class="badge {{ alerte.badge_classe }}">{{ alerte.get_niveau_urgence_display }}</span>
+            {% if alerte.est_expiree %}
+                <span class="badge badge-expiree">Alerte expirée</span>
+            {% else %}
+                <span class="badge badge-validee">Alerte en cours</span>
+            {% endif %}
+        </div>
+        <h1 style="margin: 0 0 0.5rem 0;">{{ alerte.titre }}</h1>
+        <p class="sous-titre">
+            Publié le {{ alerte.date_publication|date:"d F Y à H:i" }} par <strong>{{ alerte.auteur.get_full_name|default:alerte.auteur.username }}</strong>
+            {% if alerte.auteur.get_role_display %}
+                ({{ alerte.auteur.get_role_display }})
+            {% endif %}
+            {% if alerte.date_mise_a_jour and alerte.date_mise_a_jour|date:"U" != alerte.date_publication|date:"U" %}
+                &bull; <span style="color: var(--bleu); font-weight: 600;">Mis à jour le {{ alerte.date_mise_a_jour|date:"d F Y à H:i" }}</span>
+            {% endif %}
+        </p>
+    </div>
+    <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+        <a href="{% url 'actualites:list' %}" class="btn">← Retour au fil d'actualités</a>
+        {% if user.is_authenticated and user.est_agent or user.is_staff %}
+            <a href="{% url 'actualites:modifier_alerte' alerte.pk %}" class="btn btn-bleu btn-petit">✏️ Modifier</a>
+            <a href="{% url 'actualites:supprimer_alerte' alerte.pk %}" class="btn btn-rouge btn-petit">🗑️ Supprimer</a>
+            <a href="{% url 'actualites:creer_alerte' %}" class="btn btn-petit">+ Nouvelle alerte</a>
+        {% endif %}
+    </div>
+</div>
+
+<article class="card card-alerte urgence-{{ alerte.niveau_urgence }}" style="padding: 2rem;">
+    {# Contenu textuel complet #}
+    <div style="font-size: 1.1rem; line-height: 1.8; color: var(--texte); white-space: pre-line; margin-bottom: 2rem;">
+        {{ alerte.contenu }}
+    </div>
+
+    {# Section de téléchargement de pièce jointe #}
+    {% if alerte.piece_jointe %}
+        <section class="piece-jointe-box">
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 0.8rem;">
+                    <span style="font-size: 2rem;">📎</span>
+                    <div>
+                        <strong style="display: block; font-size: 1rem;">Document officiel joint</strong>
+                        <span style="font-size: 0.88rem; color: var(--gris);">
+                            Format : {{ alerte.extension_piece_jointe }} &bull; Fichier : {{ alerte.piece_jointe.name|cut:"alertes/pieces_jointes/" }}
+                        </span>
+                    </div>
+                </div>
+                <div>
+                    <a href="{{ alerte.piece_jointe.url }}" class="btn btn-bleu" target="_blank" download>
+                        📥 Télécharger le document joint
+                    </a>
+                </div>
+            </div>
+
+            {# Aperçu si la pièce jointe est une image #}
+            {% if alerte.est_image_piece_jointe %}
+                <div class="piece-jointe-preview">
+                    <p style="font-size: 0.85rem; color: var(--gris); margin: 0.8rem 0 0.3rem;">Aperçu du visuel joint :</p>
+                    <a href="{{ alerte.piece_jointe.url }}" target="_blank" title="Cliquez pour agrandir">
+                        <img src="{{ alerte.piece_jointe.url }}" alt="Pièce jointe : {{ alerte.titre }}">
+                    </a>
+                </div>
+            {% endif %}
+        </section>
+    {% endif %}
+
+    <hr style="border: 0; border-top: 1px solid var(--bord); margin: 1.8rem 0;">
+
+    {# Fiche récapitulative des dates et métadonnées #}
+    <dl class="details">
+        <dt>Échéance de l'alerte :</dt>
+        <dd>
+            {% if alerte.est_expiree %}
+                <span style="color: var(--rouge); font-weight: 600;">Expirée le {{ alerte.date_expiration|date:"d/m/Y à H:i" }}</span>
+            {% else %}
+                <span style="color: var(--vert); font-weight: 600;">Valide jusqu'au {{ alerte.date_expiration|date:"d/m/Y à H:i" }}</span>
+            {% endif %}
+        </dd>
+
+        <dt>Identifiant alerte :</dt>
+        <dd>#{{ alerte.pk }}</dd>
+
+        <dt>Mis à jour le :</dt>
+        <dd>{{ alerte.date_mise_a_jour|date:"d/m/Y à H:i" }}</dd>
+    </dl>
+</article>
+{% endblock %}

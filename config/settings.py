@@ -19,11 +19,11 @@ INSTALLED_APPS = [
     # ===== Socle commun =====
     'accounts',
     # ===== Modules (chaque membre décommente SA ligne) =====
-    'demandes', # Module 1 - Imen
+    'demandes', # Module 1
     # 'marches',   # Module 2 - Molka
     # 'incidents', # Module 3 - Zaineb
     # 'forum',     # Module 4 - Nour
-    # 'actualites',# Module 5 - Ribel
+    'actualites',# Module 5 - Ribel
     # 'dechets',   # Module 6 - Mahmoud
 ]
 
@@ -49,6 +49,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'demandes.context_processors.notifications_demandes',
+                'actualites.context_processors.alerte_urgente_contexte',
             ],
         },
     },
@@ -86,7 +88,6 @@ LOGIN_URL = 'accounts:login'
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'accounts:login'
 
-
-# Gestion des fichiers médias (uploads des utilisateurs)
+# ===== Fichiers médias (uploads) =====
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
