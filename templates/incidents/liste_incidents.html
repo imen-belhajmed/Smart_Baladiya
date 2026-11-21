@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container my-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Incidents signalés</h2>
+    <a href="{% url 'incidents:ajouter' %}" class="btn btn-primary">+ Signaler un incident</a>
+  </div>
+
+  <form method="get" class="row g-2 mb-4">
+    <div class="col-md-4">
+      <select name="statut" class="form-select">
+        <option value="">Tous les statuts</option>
+        {% for value, label in statuts %}
+          <option value="{{ value }}" {% if value == statut_actif %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-4">
+      <select name="categorie" class="form-select">
+        <option value="">Toutes les catégories</option>
+        {% for c in categories %}
+          <option value="{{ c.pk }}" {% if c.pk|stringformat:"s" == categorie_active %}selected{% endif %}>{{ c.nom }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-4">
+      <button class="btn btn-outline-primary" type="submit">Filtrer</button>
+      <a href="{% url 'incidents:list' %}" class="btn btn-outline-secondary">Réinitialiser</a>
+    </div>
+  </form>
+
+  {% if incidents %}
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead>
+        <tr><th>Titre</th><th>Catégorie</th><th>Statut</th><th>Date</th><th>Auteur</th><th></th></tr>
+      </thead>
+      <tbody>
+      {% for i in incidents %}
+        <tr>
+          <td>{{ i.titre }}</td>
+          <td>{{ i.categorie }}</td>
+          <td>
+            <span class="badge {% if i.statut == 'resolu' %}bg-success{% elif i.statut == 'en_cours' %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+              {{ i.get_statut_display }}
+            </span>
+          </td>
+          <td>{{ i.date_signalement|date:"d/m/Y H:i" }}</td>
+          <td>{{ i.auteur.get_username }}</td>
+          <td class="text-end">
+            <a href="{% url 'incidents:detail' i.pk %}" class="btn btn-sm btn-outline-primary">Détail</a>
+            {# {% if user.is_staff %} #}
+            {#   <a href="{% url 'incidents:modifier' i.pk %}" class="btn btn-sm btn-outline-warning">Modifier</a> #}
+            {#   <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#archiver{{ i.pk }}">Archiver</button> #}
+            {#  #}
+            {#   <div class="modal fade" id="archiver{{ i.pk }}" tabindex="-1"> #}
+            {#     <div class="modal-dialog"><div class="modal-content"> #}
+            {#       <div class="modal-header"><h5 class="modal-title">Confirmer l'archivage</h5> #}
+            {#         <button type="button" class="btn-close" data-bs-dismiss="modal"></button></div> #}
+            {#       <div class="modal-body text-start">Archiver le signalement « {{ i.titre }} » ?</div> #}
+            {#       <div class="modal-footer"> #}
+            {#         <form method="post" action="{% url 'incidents:archiver' i.pk %}"> #}
+            {#           {% csrf_token %} #}
+            {#           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button> #}
+            {#           <button type="submit" class="btn btn-danger">Archiver</button> #}
+            {#         </form> #}
+            {#       </div> #}
+            {#     </div></div> #}
+            {#   </div> #}
+            {# {% endif %} #}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <div class="alert alert-info">Aucun incident à afficher.</div>
+  {% endif %}
+</div>
+{% endblock %}
