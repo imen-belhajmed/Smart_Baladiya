@@ -313,3 +313,82 @@ class AlerteViewTests(TestCase):
         self.assertContains(response, "Arrêté de périmètre de sécurité")
         self.assertContains(response, "Télécharger le document joint")
         self.assertContains(response, alerte.piece_jointe.url)
+
+    def test_modifier_alerte_acces_anonyme_redirige(self):
+        alerte = Alerte.objects.create(
+            titre="Avis initial",
+            contenu="Contenu initial à modifier plus tard.",
+            niveau_urgence=Alerte.Urgence.MOYENNE,
+            date_expiration=timezone.now() + timedelta(days=3),
+            auteur=self.agent,
+            est_active=True,
+        )
+        url = reverse('actualites:modifier_alerte', kwargs={'pk': alerte.pk})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse('accounts:login'), response.url)
+
+    def test_modifier_alerte_citoyen_bloque(self):
+        self.client.login(username='citoyen_normal', password='Password123!')
+        alerte = Alerte.objects.create(
+            titre="Avis initial",
+            contenu="Contenu initial à modifier plus tard.",
+            niveau_urgence=Alerte.Urgence.MOYENNE,
+            date_expiration=timezone.now() + timedelta(days=3),
+            auteur=self.agent,
+            est_active=True,
+        )
+        url = reverse('actualites:modifier_alerte', kwargs={'pk': alerte.pk})
+        response = self.client.get(url, follow=True)
+        self.assertTemplateUsed(response, 'actualities/liste_alertes.html')
+        self.assertContains(response, "Accès refusé")
+
+    def test_modifier_alerte_agent_get_formulaire_pre_rempli(self):
+        self.client.login(username='agent_officiel', password='Password123!')
+        alerte = Alerte.objects.create(
+            titre="Titre original à corriger",
+            contenu="Description détaillée initiale des travaux sur le pont.",
+            niveau_urgence=Alerte.Urgence.MOYENNE,
+            date_expiration=timezone.now() + timedelta(days=4),
+            auteur=self.agent,
+            est_active=True,
+        )
+        url = reverse('actualites:modifier_alerte', kwargs={'pk': alerte.pk})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'actualities/modifier_alerte.html')
+        self.assertContains(response, "Titre original à corriger")
+        self.assertContains(response, "Description détaillée initiale des travaux")
+
+    def test_modifier_alerte_agent_post_mise_a_jour_et_horodatage(self):
+        self.client.login(username='agent_officiel', password='Password123!')
+        future_date = timezone.now() + timedelta(days=5)
+        alerte = Alerte.objects.create(
+            titre="Titre initial",
+            contenu="Contenu avant correction par l'agent municipal.",
+            niveau_urgence=Alerte.Urgence.FAIBLE,
+            date_expiration=future_date,
+            auteur=self.agent,
+            est_active=True,
+        )
+        date_initiale_maj = alerte.date_mise_a_jour
+
+        # Modification POST
+        url = reverse('actualites:modifier_alerte', kwargs={'pk': alerte.pk})
+        nouvelle_date_exp = timezone.now() + timedelta(days=7)
+        data = {
+            'titre': "Titre corrigé et mis à jour",
+            'contenu': "Nouveau contenu révisé avec consignes complémentaires.",
+            'niveau_urgence': Alerte.Urgence.ELEVEE,
+            'date_expiration': nouvelle_date_exp.strftime('%Y-%m-%dT%H:%M'),
+        }
+        response = self.client.post(url, data=data, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'actualities/detail_alerte.html')
+        self.assertContains(response, "Titre corrigé et mis à jour")
+        self.assertContains(response, "Mis à jour le")
+
+        alerte.refresh_from_db()
+        self.assertEqual(alerte.titre, "Titre corrigé et mis à jour")
+        self.assertEqual(alerte.niveau_urgence, Alerte.Urgence.ELEVEE)
+        self.assertGreaterEqual(alerte.date_mise_a_jour, date_initiale_maj)

@@ -54,6 +54,12 @@ class AlerteForm(forms.ModelForm):
             'piece_jointe': "Formats acceptés : PDF, PNG, JPG, JPEG, WEBP, DOC, DOCX (Max : 5 Mo).",
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Assure un pré-remplissage compatible avec le format datetime-local de HTML5
+        if self.instance and self.instance.pk and self.instance.date_expiration:
+            self.initial['date_expiration'] = self.instance.date_expiration.strftime('%Y-%m-%dT%H:%M')
+
     def clean_titre(self):
         titre = self.cleaned_data.get('titre', '').strip()
         if len(titre) < 5:
@@ -71,7 +77,9 @@ class AlerteForm(forms.ModelForm):
         if not date_expiration:
             raise forms.ValidationError("La date d'expiration est obligatoire.")
         if date_expiration <= timezone.now():
-            raise forms.ValidationError("La date d'expiration doit être ultérieure à la date et heure actuelles.")
+            # Si l'alerte existe déjà et qu'on ne modifie pas sa date déjà passée
+            if not (self.instance.pk and self.instance.date_expiration == date_expiration):
+                raise forms.ValidationError("La date d'expiration doit être ultérieure à la date et heure actuelles.")
         return date_expiration
 
     def clean_piece_jointe(self):

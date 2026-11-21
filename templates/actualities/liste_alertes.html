@@ -106,6 +106,9 @@
                             </div>
                             <small style="color: var(--gris);">
                                 {{ alerte.date_publication|date:"d/m/Y à H:i" }}
+                                {% if alerte.date_mise_a_jour and alerte.date_mise_a_jour|date:"U" != alerte.date_publication|date:"U" %}
+                                    &bull; <em>Mis à jour le {{ alerte.date_mise_a_jour|date:"d/m/Y à H:i" }}</em>
+                                {% endif %}
                             </small>
                         </div>
 
@@ -120,7 +123,12 @@
                                     &bull; 📎 <span style="color: var(--bleu);">Document joint ({{ alerte.extension_piece_jointe }})</span>
                                 {% endif %}
                             </div>
-                            <div>
+                            <div style="display: flex; gap: 0.4rem; align-items: center;">
+                                {% if user.is_authenticated and user.est_agent or user.is_staff %}
+                                    <a href="{% url 'actualites:modifier_alerte' alerte.pk %}" class="btn btn-petit" title="Modifier le communiqué">
+                                        ✏️ Modifier
+                                    </a>
+                                {% endif %}
                                 <a href="{% url 'actualites:detail_alerte' alerte.pk %}" class="btn btn-petit btn-bleu">
                                     Consulter l'annonce →
                                 </a>

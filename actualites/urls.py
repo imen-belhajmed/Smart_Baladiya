@@ -8,5 +8,6 @@ urlpatterns = [
     path('alertes/', views.liste_alertes, name='liste_alertes'),
     path('alertes/creer/', views.creer_alerte, name='creer_alerte'),
     path('alertes/<int:pk>/', views.detail_alerte, name='detail_alerte'),
+    path('alertes/<int:pk>/modifier/', views.modifier_alerte, name='modifier_alerte'),
 ]
 

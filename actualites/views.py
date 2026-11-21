@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -106,5 +107,35 @@ def detail_alerte(request, pk):
     """
     alerte = get_object_or_404(Alerte, pk=pk)
     return render(request, 'actualities/detail_alerte.html', {
+        'alerte': alerte,
+    })
+
+
+@login_required(login_url='accounts:login')
+def modifier_alerte(request, pk):
+    """
+    Vue réservée aux agents municipaux et administrateurs
+    permettant de modifier le contenu d'un communiqué ou d'une alerte.
+    L'enregistrement actualise automatiquement l'horodatage de révision (date_mise_a_jour via auto_now=True).
+    """
+    if not (request.user.is_superuser or getattr(request.user, 'est_agent', False)):
+        messages.error(request, "Accès refusé : la modification d'alertes est strictement réservée aux agents municipaux.")
+        return redirect('actualites:list')
+
+    alerte = get_object_or_404(Alerte, pk=pk)
+
+    if request.method == 'POST':
+        form = AlerteForm(request.POST, request.FILES, instance=alerte)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Le communiqué officiel « {alerte.titre} » a été mis à jour avec succès.")
+            return redirect('actualites:detail_alerte', pk=alerte.pk)
+        else:
+            messages.error(request, "Veuillez corriger les erreurs ci-dessous avant d'enregistrer.")
+    else:
+        form = AlerteForm(instance=alerte)
+
+    return render(request, 'actualities/modifier_alerte.html', {
+        'form': form,
         'alerte': alerte,
     })

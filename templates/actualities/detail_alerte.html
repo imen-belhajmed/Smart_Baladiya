@@ -19,11 +19,15 @@
             {% if alerte.auteur.get_role_display %}
                 ({{ alerte.auteur.get_role_display }})
             {% endif %}
+            {% if alerte.date_mise_a_jour and alerte.date_mise_a_jour|date:"U" != alerte.date_publication|date:"U" %}
+                &bull; <span style="color: var(--bleu); font-weight: 600;">Mis à jour le {{ alerte.date_mise_a_jour|date:"d F Y à H:i" }}</span>
+            {% endif %}
         </p>
     </div>
     <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
         <a href="{% url 'actualites:list' %}" class="btn">← Retour au fil d'actualités</a>
         {% if user.is_authenticated and user.est_agent or user.is_staff %}
+            <a href="{% url 'actualites:modifier_alerte' alerte.pk %}" class="btn btn-bleu btn-petit">✏️ Modifier</a>
             <a href="{% url 'actualites:creer_alerte' %}" class="btn btn-rouge btn-petit">+ Nouvelle alerte</a>
         {% endif %}
     </div>
@@ -83,7 +87,7 @@
         <dt>Identifiant alerte :</dt>
         <dd>#{{ alerte.pk }}</dd>
 
-        <dt>Dernière mise à jour :</dt>
+        <dt>Mis à jour le :</dt>
         <dd>{{ alerte.date_mise_a_jour|date:"d/m/Y à H:i" }}</dd>
     </dl>
 </article>
