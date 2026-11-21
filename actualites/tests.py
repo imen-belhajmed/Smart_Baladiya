@@ -226,3 +226,90 @@ class AlerteViewTests(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Alerte pollution")
+
+    def test_liste_alertes_filtre_actives_uniquement(self):
+        # Alerte active
+        Alerte.objects.create(
+            titre="Travaux avenue Habib Bourguiba",
+            contenu="Circulation ralentie en centre-ville.",
+            niveau_urgence=Alerte.Urgence.MOYENNE,
+            date_expiration=timezone.now() + timedelta(days=2),
+            auteur=self.agent,
+            est_active=True,
+        )
+        # Alerte expirée
+        Alerte.objects.create(
+            titre="Alerte ancienne terminée",
+            contenu="Cet avis n'est plus valable.",
+            niveau_urgence=Alerte.Urgence.FAIBLE,
+            date_expiration=timezone.now() - timedelta(days=3),
+            auteur=self.agent,
+            est_active=False,
+        )
+        url = reverse('actualites:list')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Travaux avenue Habib Bourguiba")
+        self.assertNotContains(response, "Alerte ancienne terminée")
+
+    def test_liste_alertes_recherche_et_urgence(self):
+        alerte_coupure = Alerte.objects.create(
+            titre="Coupure eau quartier Sud",
+            contenu="Travaux sur le réseau principal de distribution.",
+            niveau_urgence=Alerte.Urgence.ELEVEE,
+            date_expiration=timezone.now() + timedelta(days=2),
+            auteur=self.agent,
+            est_active=True,
+        )
+        alerte_collecte = Alerte.objects.create(
+            titre="Collecte encombrants",
+            contenu="Ramassage exceptionnel ce samedi.",
+            niveau_urgence=Alerte.Urgence.FAIBLE,
+            date_expiration=timezone.now() + timedelta(days=2),
+            auteur=self.agent,
+            est_active=True,
+        )
+        # Recherche par mot-clé
+        response = self.client.get(reverse('actualites:list') + '?q=Coupure')
+        self.assertIn(alerte_coupure, response.context['alertes'])
+        self.assertNotIn(alerte_collecte, response.context['alertes'])
+
+        # Filtre par niveau d'urgence
+        response = self.client.get(reverse('actualites:list') + '?urgence=elevee')
+        self.assertIn(alerte_coupure, response.context['alertes'])
+        self.assertNotIn(alerte_collecte, response.context['alertes'])
+
+    def test_bandeau_alerte_urgente_dans_base_html(self):
+        # Création d'une alerte critique
+        Alerte.objects.create(
+            titre="Inondations - Restez chez vous",
+            contenu="Vigilance rouge crue subite dans la région.",
+            niveau_urgence=Alerte.Urgence.CRITIQUE,
+            date_expiration=timezone.now() + timedelta(days=1),
+            auteur=self.agent,
+            est_active=True,
+        )
+        # Vérification que le bandeau apparaît même sur la page d'accueil (base.html)
+        response = self.client.get(reverse('home'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "ALERTE URGENTE")
+        self.assertContains(response, "Inondations - Restez chez vous")
+
+    def test_detail_alerte_avec_telechargement_piece_jointe(self):
+        pdf = SimpleUploadedFile("arrete_securite.pdf", b"%PDF-1.4 contenu officiel", content_type="application/pdf")
+        alerte = Alerte.objects.create(
+            titre="Arrêté de périmètre de sécurité",
+            contenu="Détails complets des mesures de sécurité prises par la mairie.",
+            niveau_urgence=Alerte.Urgence.ELEVEE,
+            date_expiration=timezone.now() + timedelta(days=4),
+            piece_jointe=pdf,
+            auteur=self.agent,
+            est_active=True,
+        )
+        url = reverse('actualites:detail_alerte', kwargs={'pk': alerte.pk})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'actualities/detail_alerte.html')
+        self.assertContains(response, "Arrêté de périmètre de sécurité")
+        self.assertContains(response, "Télécharger le document joint")
+        self.assertContains(response, alerte.piece_jointe.url)

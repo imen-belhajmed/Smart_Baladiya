@@ -1,6 +1,8 @@
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
+from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from .forms import AlerteForm
 from .models import Alerte
 
@@ -35,23 +37,72 @@ def creer_alerte(request):
 
 def liste_alertes(request):
     """
-    Vue publique listant les annonces et alertes officielles.
+    Vue publique du fil d'actualités et des alertes officielles.
+    Filtre par défaut les alertes actives et récentes avec filter(est_active=True).
+    Propose aussi une recherche par mot-clé, un filtrage par niveau d'urgence,
+    et une consultation des échéances / calendrier des événements municipaux.
     """
-    alertes = Alerte.objects.all().order_by('-date_publication')
-    urgence_filtre = request.GET.get('urgence')
-    if urgence_filtre:
+    # Synchronisation des alertes dont la date d'expiration est dépassée
+    maintenant = timezone.now()
+    Alerte.objects.filter(est_active=True, date_expiration__lte=maintenant).update(est_active=False)
+
+    # Paramètres de filtre
+    statut = request.GET.get('statut', 'actives')
+    urgence_filtre = request.GET.get('urgence', '').strip()
+    recherche = request.GET.get('q', '').strip()
+
+    # QuerySet principal filtrant les alertes actives et récentes
+    if statut == 'archives':
+        alertes = Alerte.objects.filter(est_active=False)
+    elif statut == 'toutes':
+        alertes = Alerte.objects.all()
+    else:
+        # Par défaut : alertes actives
+        alertes = Alerte.objects.filter(est_active=True)
+
+    # Filtrage par mot-clé
+    if recherche:
+        alertes = alertes.filter(
+            Q(titre__icontains=recherche) | Q(contenu__icontains=recherche)
+        )
+
+    # Filtrage par niveau d'urgence
+    if urgence_filtre and urgence_filtre in dict(Alerte.Urgence.choices):
         alertes = alertes.filter(niveau_urgence=urgence_filtre)
+
+    alertes = alertes.order_by('-date_publication')
+
+    # Alerte urgente vedette active (pour bandeau d'alerte urgente en haut de page)
+    alerte_urgente_vedette = Alerte.objects.filter(
+        est_active=True,
+        niveau_urgence__in=[Alerte.Urgence.CRITIQUE, Alerte.Urgence.ELEVEE],
+        date_expiration__gt=maintenant
+    ).order_by('-niveau_urgence', '-date_publication').first()
+
+    # Prochaines échéances / calendrier des événements municipaux
+    prochaines_echeances = Alerte.objects.filter(
+        est_active=True,
+        date_expiration__gt=maintenant
+    ).order_by('date_expiration')[:5]
 
     return render(request, 'actualities/liste_alertes.html', {
         'alertes': alertes,
+        'alerte_urgente_vedette': alerte_urgente_vedette,
+        'prochaines_echeances': prochaines_echeances,
         'urgence_active': urgence_filtre,
+        'statut_actif': statut,
+        'recherche': recherche,
         'urgences': Alerte.Urgence.choices,
+        'total_actives': Alerte.objects.filter(est_active=True).count(),
+        'total_archives': Alerte.objects.filter(est_active=False).count(),
     })
 
 
 def detail_alerte(request, pk):
     """
-    Vue détaillée d'une alerte avec affichage complet et téléchargement des pièces jointes.
+    Vue publique de détail d'une alerte ou annonce municipale.
+    Affiche le texte intégral, les dates de validité, l'auteur
+    et offre le téléchargement direct de la pièce jointe.
     """
     alerte = get_object_or_404(Alerte, pk=pk)
     return render(request, 'actualities/detail_alerte.html', {

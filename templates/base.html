@@ -37,6 +37,23 @@
     </div>
 </nav>
 
+{% if alerte_urgente_bandeau %}
+    <aside class="bandeau-alerte-urgente" role="alert" aria-label="Alerte municipale urgente">
+        <div class="bandeau-contenu">
+            <span class="bandeau-icone">⚠️</span>
+            <div class="bandeau-texte">
+                <strong>ALERTE URGENTE ({{ alerte_urgente_bandeau.get_niveau_urgence_display }}) : {{ alerte_urgente_bandeau.titre }}</strong>
+                <span>{{ alerte_urgente_bandeau.contenu|truncatewords:24 }}</span>
+            </div>
+        </div>
+        <div>
+            <a href="{% url 'actualites:detail_alerte' alerte_urgente_bandeau.pk %}" class="btn btn-petit" style="background:#fff; color:#900C19; border-color:#fff; font-weight:700;">
+                Consulter l'alerte →
+            </a>
+        </div>
+    </aside>
+{% endif %}
+
 <main class="container">
     {% if messages %}
         <ul class="messages">

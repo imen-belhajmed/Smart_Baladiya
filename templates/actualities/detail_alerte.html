@@ -1,59 +1,90 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ alerte.titre }}{% endblock %}
+{% block title %}{{ alerte.titre }} - Smart Baladiya{% endblock %}
 
 {% block content %}
 <div class="page-header">
     <div>
-        <div style="display: flex; align-items: center; gap: 0.7rem; margin-bottom: 0.5rem;">
+        <div style="display: flex; align-items: center; gap: 0.7rem; margin-bottom: 0.5rem; flex-wrap: wrap;">
             <span class="badge {{ alerte.badge_classe }}">{{ alerte.get_niveau_urgence_display }}</span>
             {% if alerte.est_expiree %}
-                <span class="badge badge-expiree">Expirée</span>
+                <span class="badge badge-expiree">Alerte expirée</span>
             {% else %}
-                <span class="badge badge-validee">Active</span>
+                <span class="badge badge-validee">Alerte en cours</span>
             {% endif %}
         </div>
-        <h1>{{ alerte.titre }}</h1>
+        <h1 style="margin: 0 0 0.5rem 0;">{{ alerte.titre }}</h1>
         <p class="sous-titre">
-            Publié le {{ alerte.date_publication|date:"d/m/Y à H:i" }} par {{ alerte.auteur.get_full_name|default:alerte.auteur.username }}
+            Publié le {{ alerte.date_publication|date:"d F Y à H:i" }} par <strong>{{ alerte.auteur.get_full_name|default:alerte.auteur.username }}</strong>
+            {% if alerte.auteur.get_role_display %}
+                ({{ alerte.auteur.get_role_display }})
+            {% endif %}
         </p>
     </div>
-    <div>
-        <a href="{% url 'actualites:list' %}" class="btn">← Retour à la liste</a>
+    <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+        <a href="{% url 'actualites:list' %}" class="btn">← Retour au fil d'actualités</a>
+        {% if user.is_authenticated and user.est_agent or user.is_staff %}
+            <a href="{% url 'actualites:creer_alerte' %}" class="btn btn-rouge btn-petit">+ Nouvelle alerte</a>
+        {% endif %}
     </div>
 </div>
 
-<div class="card">
-    <div style="font-size: 1.05rem; line-height: 1.7; white-space: pre-line; margin-bottom: 1.5rem;">
+<article class="card card-alerte urgence-{{ alerte.niveau_urgence }}" style="padding: 2rem;">
+    {# Contenu textuel complet #}
+    <div style="font-size: 1.1rem; line-height: 1.8; color: var(--texte); white-space: pre-line; margin-bottom: 2rem;">
         {{ alerte.contenu }}
     </div>
 
-    <hr style="border: 0; border-top: 1px solid var(--bord); margin: 1.5rem 0;">
+    {# Section de téléchargement de pièce jointe #}
+    {% if alerte.piece_jointe %}
+        <section class="piece-jointe-box">
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 0.8rem;">
+                    <span style="font-size: 2rem;">📎</span>
+                    <div>
+                        <strong style="display: block; font-size: 1rem;">Document officiel joint</strong>
+                        <span style="font-size: 0.88rem; color: var(--gris);">
+                            Format : {{ alerte.extension_piece_jointe }} &bull; Fichier : {{ alerte.piece_jointe.name|cut:"alertes/pieces_jointes/" }}
+                        </span>
+                    </div>
+                </div>
+                <div>
+                    <a href="{{ alerte.piece_jointe.url }}" class="btn btn-bleu" target="_blank" download>
+                        📥 Télécharger le document joint
+                    </a>
+                </div>
+            </div>
 
+            {# Aperçu si la pièce jointe est une image #}
+            {% if alerte.est_image_piece_jointe %}
+                <div class="piece-jointe-preview">
+                    <p style="font-size: 0.85rem; color: var(--gris); margin: 0.8rem 0 0.3rem;">Aperçu du visuel joint :</p>
+                    <a href="{{ alerte.piece_jointe.url }}" target="_blank" title="Cliquez pour agrandir">
+                        <img src="{{ alerte.piece_jointe.url }}" alt="Pièce jointe : {{ alerte.titre }}">
+                    </a>
+                </div>
+            {% endif %}
+        </section>
+    {% endif %}
+
+    <hr style="border: 0; border-top: 1px solid var(--bord); margin: 1.8rem 0;">
+
+    {# Fiche récapitulative des dates et métadonnées #}
     <dl class="details">
-        <dt>Statut :</dt>
+        <dt>Échéance de l'alerte :</dt>
         <dd>
             {% if alerte.est_expiree %}
-                <span class="badge badge-expiree">Expirée depuis le {{ alerte.date_expiration|date:"d/m/Y à H:i" }}</span>
+                <span style="color: var(--rouge); font-weight: 600;">Expirée le {{ alerte.date_expiration|date:"d/m/Y à H:i" }}</span>
             {% else %}
-                <span class="badge badge-validee">En cours jusqu'au {{ alerte.date_expiration|date:"d/m/Y à H:i" }}</span>
+                <span style="color: var(--vert); font-weight: 600;">Valide jusqu'au {{ alerte.date_expiration|date:"d/m/Y à H:i" }}</span>
             {% endif %}
         </dd>
 
-        <dt>Auteur :</dt>
-        <dd>{{ alerte.auteur.get_full_name|default:alerte.auteur.username }} ({{ alerte.auteur.get_role_display }})</dd>
+        <dt>Identifiant alerte :</dt>
+        <dd>#{{ alerte.pk }}</dd>
 
-        <dt>Pièce jointe :</dt>
-        <dd>
-            {% if alerte.piece_jointe %}
-                <a href="{{ alerte.piece_jointe.url }}" class="btn btn-petit btn-bleu" target="_blank" download>
-                    📥 Télécharger le document joint
-                </a>
-            {% else %}
-                <span style="color: var(--gris);">Aucune pièce jointe</span>
-            {% endif %}
-        </dd>
+        <dt>Dernière mise à jour :</dt>
+        <dd>{{ alerte.date_mise_a_jour|date:"d/m/Y à H:i" }}</dd>
     </dl>
-</div>
+</article>
 {% endblock %}
-

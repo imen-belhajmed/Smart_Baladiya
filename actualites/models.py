@@ -1,3 +1,4 @@
+import os
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
@@ -37,6 +38,11 @@ class Alerte(models.Model):
         verbose_name="Pièce jointe",
         help_text="Document justificatif, arrêté municipal, photo ou plan (max 5 Mo)"
     )
+    est_active = models.BooleanField(
+        default=True,
+        verbose_name="Est active",
+        help_text="Indique si l'alerte est actuellement active"
+    )
     auteur = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -60,17 +66,33 @@ class Alerte(models.Model):
     def __str__(self):
         return f"[{self.get_niveau_urgence_display()}] {self.titre}"
 
-    @property
-    def est_active(self):
-        """Indique si l'alerte n'a pas encore expiré."""
-        if self.date_expiration:
-            return self.date_expiration > timezone.now()
-        return True
+    def save(self, *args, **kwargs):
+        # Synchronise automatiquement l'état actif selon l'échéance
+        if self.date_expiration and self.date_expiration <= timezone.now():
+            self.est_active = False
+        super().save(*args, **kwargs)
 
     @property
     def est_expiree(self):
         """Indique si l'alerte est déjà expirée."""
+        if self.date_expiration:
+            return self.date_expiration <= timezone.now()
         return not self.est_active
+
+    @property
+    def est_image_piece_jointe(self):
+        """Vérifie si la pièce jointe est une image visualisable."""
+        if self.piece_jointe:
+            ext = os.path.splitext(self.piece_jointe.name)[1].lower()
+            return ext in ['.png', '.jpg', '.jpeg', '.webp']
+        return False
+
+    @property
+    def extension_piece_jointe(self):
+        """Retourne l'extension lisible du fichier attaché."""
+        if self.piece_jointe:
+            return os.path.splitext(self.piece_jointe.name)[1].lower().replace('.', '').upper()
+        return ""
 
     @property
     def badge_classe(self):

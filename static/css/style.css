@@ -60,3 +60,128 @@ input:focus, select:focus, textarea:focus{outline:3px solid #E8EFFA; border-colo
 .messages .warning{background:var(--orange-bg); color:var(--orange)}
 .hero{background:var(--nuit); color:#fff; border-radius:12px; padding:2.2rem}
 .hero p{opacity:.85; max-width:50ch; margin:.5rem 0 0}
+
+/* ===== Bandeau Alerte Urgente ===== */
+.bandeau-alerte-urgente {
+    background: #900C19;
+    color: #fff;
+    padding: .85rem 1.5rem;
+    border-bottom: 2px solid #5C070F;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.2rem;
+    flex-wrap: wrap;
+    animation: alertePulse 3s infinite ease-in-out;
+}
+@keyframes alertePulse {
+    0%, 100% { background-color: #900C19; }
+    50% { background-color: #A81221; }
+}
+.bandeau-alerte-urgente a.bandeau-lien {
+    color: #fff;
+    text-decoration: underline;
+}
+.bandeau-contenu {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+    min-width: 260px;
+}
+.bandeau-icone {
+    font-size: 1.6rem;
+    line-height: 1;
+}
+.bandeau-texte strong {
+    display: block;
+    font-size: 1rem;
+    font-weight: 700;
+}
+.bandeau-texte span {
+    font-size: .9rem;
+    opacity: .95;
+}
+
+/* ===== Layout Responsive Fil d'actualités ===== */
+.layout-actualites {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+    align-items: start;
+}
+@media (max-width: 800px) {
+    .layout-actualites {
+        grid-template-columns: 1fr;
+    }
+}
+
+.barre-recherche {
+    display: flex;
+    gap: .5rem;
+    margin-bottom: 1rem;
+}
+.barre-recherche input {
+    flex: 1;
+}
+
+.card-alerte {
+    border-left: 6px solid var(--bleu);
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+.card-alerte:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(20, 35, 59, .08);
+}
+.card-alerte.urgence-critique { border-left-color: #900C19; }
+.card-alerte.urgence-elevee { border-left-color: #C0392B; }
+.card-alerte.urgence-moyenne { border-left-color: #9A6212; }
+.card-alerte.urgence-faible { border-left-color: #1F4E9C; }
+
+/* ===== Calendrier / Prochaines échéances ===== */
+.calendrier-item {
+    display: flex;
+    gap: .8rem;
+    padding: .75rem 0;
+    border-bottom: 1px solid var(--bord);
+}
+.calendrier-item:last-child {
+    border-bottom: 0;
+}
+.calendrier-date {
+    background: #FAFBFD;
+    border: 1px solid var(--bord);
+    border-radius: 8px;
+    padding: .3rem .6rem;
+    text-align: center;
+    min-width: 58px;
+}
+.calendrier-jour {
+    font-size: 1.2rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--bleu);
+}
+.calendrier-mois {
+    font-size: .75rem;
+    color: var(--gris);
+    text-transform: uppercase;
+}
+
+/* ===== Pièce jointe & Aperçu image ===== */
+.piece-jointe-box {
+    background: #FAFBFD;
+    border: 1px solid var(--bord);
+    border-radius: 10px;
+    padding: 1.2rem;
+    margin: 1.5rem 0;
+}
+.piece-jointe-preview img {
+    max-width: 100%;
+    max-height: 450px;
+    height: auto;
+    border-radius: 8px;
+    border: 1px solid var(--bord);
+    margin-top: .8rem;
+    display: block;
+}
