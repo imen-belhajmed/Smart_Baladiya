@@ -100,15 +100,9 @@
             <label for="{{ form.piece_jointe.id_for_label }}">
                 {{ form.piece_jointe.label }}
             </label>
-            {% if alerte.piece_jointe %}
-                <div style="background: #FAFBFD; border: 1px solid var(--bord); border-radius: 6px; padding: 0.6rem 0.8rem; margin-bottom: 0.5rem; font-size: 0.88rem;">
-                    📎 <strong>Fichier actuellement associé :</strong>
-                    <a href="{{ alerte.piece_jointe.url }}" target="_blank">{{ alerte.piece_jointe.name }}</a>
-                </div>
-            {% endif %}
             {{ form.piece_jointe }}
             <span class="helptext">
-                {{ form.piece_jointe.help_text }} (Sélectionnez un nouveau fichier uniquement pour remplacer l'existant).
+                {{ form.piece_jointe.help_text }} (Cochez pour supprimer le fichier existant, ou choisissez un nouveau fichier pour le remplacer directement).
             </span>
             {% if form.piece_jointe.errors %}
                 <ul class="errorlist">

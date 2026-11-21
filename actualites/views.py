@@ -139,3 +139,51 @@ def modifier_alerte(request, pk):
         'form': form,
         'alerte': alerte,
     })
+
+
+@login_required(login_url='accounts:login')
+def supprimer_alerte(request, pk):
+    """
+    Vue réservée aux agents municipaux et administrateurs
+    permettant la suppression définitive ou l'archivage sécurisé (soft-delete est_active=False).
+    """
+    if not (request.user.is_superuser or getattr(request.user, 'est_agent', False)):
+        messages.error(request, "Accès refusé : la suppression d'alertes est strictement réservée aux agents municipaux.")
+        return redirect('actualites:list')
+
+    alerte = get_object_or_404(Alerte, pk=pk)
+
+    if request.method == 'POST':
+        action = request.POST.get('action', 'supprimer')
+        if action == 'archiver':
+            alerte.est_active = False
+            alerte.save()
+            messages.success(request, f"L'alerte officielle « {alerte.titre} » a été archivée avec succès.")
+        else:
+            titre = alerte.titre
+            alerte.delete()
+            messages.success(request, f"L'alerte officielle « {titre} » a été définitivement supprimée.")
+        return redirect('actualites:list')
+
+    return render(request, 'actualities/supprimer_alerte.html', {
+        'alerte': alerte,
+    })
+
+
+@login_required(login_url='accounts:login')
+def archiver_alerte(request, pk):
+    """
+    Action dédiée d'archivage sécurisé (soft-delete est_active=False)
+    sans suppression définitive de la base de données.
+    """
+    if not (request.user.is_superuser or getattr(request.user, 'est_agent', False)):
+        messages.error(request, "Accès refusé : l'archivage d'alertes est strictement réservé aux agents municipaux.")
+        return redirect('actualites:list')
+
+    alerte = get_object_or_404(Alerte, pk=pk)
+
+    if request.method == 'POST':
+        alerte.est_active = False
+        alerte.save()
+        messages.success(request, f"L'alerte officielle « {alerte.titre} » a été archivée avec succès.")
+    return redirect('actualites:list')

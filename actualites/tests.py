@@ -138,6 +138,36 @@ class AlerteFormTests(TestCase):
         self.assertIn('piece_jointe', form.errors)
         self.assertIn("trop volumineux", form.errors['piece_jointe'][0])
 
+    def test_piece_jointe_suppression_et_remplacement_simultanes(self):
+        """Vérifie qu'on peut cocher 'effacer' et envoyer un nouveau fichier sans erreur de contradiction."""
+        future_date = timezone.now() + timedelta(days=2)
+        new_pdf = SimpleUploadedFile("nouveau_document.pdf", b"%PDF-1.4 nouveau contenu", content_type="application/pdf")
+        data = {
+            'titre': "Arrêté mis à jour",
+            'contenu': "Nouvelle version de l'arrêté municipal.",
+            'niveau_urgence': Alerte.Urgence.MOYENNE,
+            'date_expiration': future_date.strftime('%Y-%m-%dT%H:%M'),
+            'piece_jointe-clear': 'on',  # Case supprimer cochée
+        }
+        file_data = {'piece_jointe': new_pdf}  # Nouveau fichier téléversé simultanément
+        form = AlerteForm(data=data, files=file_data)
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertEqual(form.cleaned_data['piece_jointe'], new_pdf)
+
+    def test_piece_jointe_suppression_seule(self):
+        """Vérifie que cocher 'effacer' sans nouveau fichier supprime la pièce jointe."""
+        future_date = timezone.now() + timedelta(days=2)
+        data = {
+            'titre': "Arrêté sans document",
+            'contenu': "L'arrêté ne comporte plus de document joint.",
+            'niveau_urgence': Alerte.Urgence.MOYENNE,
+            'date_expiration': future_date.strftime('%Y-%m-%dT%H:%M'),
+            'piece_jointe-clear': 'on',
+        }
+        form = AlerteForm(data=data)
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertFalse(form.cleaned_data['piece_jointe'])
+
 
 class AlerteViewTests(TestCase):
     def setUp(self):
@@ -392,3 +422,139 @@ class AlerteViewTests(TestCase):
         self.assertEqual(alerte.titre, "Titre corrigé et mis à jour")
         self.assertEqual(alerte.niveau_urgence, Alerte.Urgence.ELEVEE)
         self.assertGreaterEqual(alerte.date_mise_a_jour, date_initiale_maj)
+
+    def test_modifier_alerte_supprimer_et_remplacer_fichier_simultanement(self):
+        self.client.login(username='agent_officiel', password='Password123!')
+        fichier_initial = SimpleUploadedFile("ancien.pdf", b"%PDF-1.4 ancien", content_type="application/pdf")
+        alerte = Alerte.objects.create(
+            titre="Avis avec document",
+            contenu="Consignes avec fichier joint initialement.",
+            niveau_urgence=Alerte.Urgence.MOYENNE,
+            date_expiration=timezone.now() + timedelta(days=5),
+            piece_jointe=fichier_initial,
+            auteur=self.agent,
+            est_active=True,
+        )
+
+        nouveau_fichier = SimpleUploadedFile("nouveau.pdf", b"%PDF-1.4 nouveau", content_type="application/pdf")
+        url = reverse('actualites:modifier_alerte', kwargs={'pk': alerte.pk})
+        data = {
+            'titre': "Avis avec document actualisé",
+            'contenu': "Consignes avec nouveau fichier joint de remplacement.",
+            'niveau_urgence': Alerte.Urgence.MOYENNE,
+            'date_expiration': (timezone.now() + timedelta(days=5)).strftime('%Y-%m-%dT%H:%M'),
+            'piece_jointe-clear': 'on',  # Case effacer cochée
+            'piece_jointe': nouveau_fichier,  # Nouveau fichier joint
+        }
+        response = self.client.post(url, data=data, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'actualities/detail_alerte.html')
+        self.assertContains(response, "mis à jour avec succès")
+
+        alerte.refresh_from_db()
+        self.assertTrue(alerte.piece_jointe)
+        self.assertIn("nouveau", alerte.piece_jointe.name)
+
+    def test_supprimer_alerte_acces_anonyme_redirige(self):
+        alerte = Alerte.objects.create(
+            titre="Alerte à supprimer",
+            contenu="Contenu de test pour la suppression.",
+            niveau_urgence=Alerte.Urgence.FAIBLE,
+            date_expiration=timezone.now() + timedelta(days=2),
+            auteur=self.agent,
+            est_active=True,
+        )
+        url = reverse('actualites:supprimer_alerte', kwargs={'pk': alerte.pk})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse('accounts:login'), response.url)
+
+    def test_supprimer_alerte_citoyen_bloque(self):
+        self.client.login(username='citoyen_normal', password='Password123!')
+        alerte = Alerte.objects.create(
+            titre="Alerte à supprimer",
+            contenu="Contenu de test pour la suppression.",
+            niveau_urgence=Alerte.Urgence.FAIBLE,
+            date_expiration=timezone.now() + timedelta(days=2),
+            auteur=self.agent,
+            est_active=True,
+        )
+        url = reverse('actualites:supprimer_alerte', kwargs={'pk': alerte.pk})
+        response = self.client.post(url, data={'action': 'supprimer'}, follow=True)
+        self.assertTemplateUsed(response, 'actualities/liste_alertes.html')
+        self.assertContains(response, "Accès refusé")
+        self.assertTrue(Alerte.objects.filter(pk=alerte.pk).exists())
+
+    def test_supprimer_alerte_agent_confirmation_page_get(self):
+        self.client.login(username='agent_officiel', password='Password123!')
+        alerte = Alerte.objects.create(
+            titre="Alerte travaux terminés",
+            contenu="Description de l'alerte dont les travaux sont achevés.",
+            niveau_urgence=Alerte.Urgence.MOYENNE,
+            date_expiration=timezone.now() + timedelta(days=2),
+            auteur=self.agent,
+            est_active=True,
+        )
+        url = reverse('actualites:supprimer_alerte', kwargs={'pk': alerte.pk})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'actualities/supprimer_alerte.html')
+        self.assertContains(response, "Alerte travaux terminés")
+        self.assertContains(response, "Archiver (Soft-delete)")
+
+    def test_supprimer_alerte_soft_delete_action_archiver(self):
+        self.client.login(username='agent_officiel', password='Password123!')
+        alerte = Alerte.objects.create(
+            titre="Avis tempête passé",
+            contenu="Avis obsolète à archiver pour conserver l'historique.",
+            niveau_urgence=Alerte.Urgence.CRITIQUE,
+            date_expiration=timezone.now() + timedelta(days=1),
+            auteur=self.agent,
+            est_active=True,
+        )
+        url = reverse('actualites:supprimer_alerte', kwargs={'pk': alerte.pk})
+        response = self.client.post(url, data={'action': 'archiver'}, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'actualities/liste_alertes.html')
+        self.assertContains(response, "a été archivée avec succès")
+
+        alerte.refresh_from_db()
+        self.assertFalse(alerte.est_active)
+        self.assertTrue(Alerte.objects.filter(pk=alerte.pk).exists())
+
+    def test_supprimer_alerte_hard_delete_action_supprimer(self):
+        self.client.login(username='agent_officiel', password='Password123!')
+        alerte = Alerte.objects.create(
+            titre="Alerte erreur de saisie",
+            contenu="Contenu erroné devant être supprimé définitivement.",
+            niveau_urgence=Alerte.Urgence.FAIBLE,
+            date_expiration=timezone.now() + timedelta(days=1),
+            auteur=self.agent,
+            est_active=True,
+        )
+        pk = alerte.pk
+        url = reverse('actualites:supprimer_alerte', kwargs={'pk': pk})
+        response = self.client.post(url, data={'action': 'supprimer'}, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'actualities/liste_alertes.html')
+        self.assertContains(response, "a été définitivement supprimée")
+        self.assertFalse(Alerte.objects.filter(pk=pk).exists())
+
+    def test_archiver_alerte_action_dediee(self):
+        self.client.login(username='agent_officiel', password='Password123!')
+        alerte = Alerte.objects.create(
+            titre="Alerte route barrée achevée",
+            contenu="La voie est de nouveau praticable.",
+            niveau_urgence=Alerte.Urgence.MOYENNE,
+            date_expiration=timezone.now() + timedelta(days=2),
+            auteur=self.agent,
+            est_active=True,
+        )
+        url = reverse('actualites:archiver_alerte', kwargs={'pk': alerte.pk})
+        response = self.client.post(url, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'actualities/liste_alertes.html')
+        self.assertContains(response, "a été archivée avec succès")
+
+        alerte.refresh_from_db()
+        self.assertFalse(alerte.est_active)

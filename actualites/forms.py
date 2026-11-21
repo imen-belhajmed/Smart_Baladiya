@@ -10,6 +10,30 @@ EXTENSIONS_AUTORISEES = ['.pdf', '.png', '.jpg', '.jpeg', '.webp', '.doc', '.doc
 TAILLE_MAX_FICHIER = 5 * 1024 * 1024  # 5 Mo
 
 
+class PermissiveClearableFileInput(forms.ClearableFileInput):
+    """
+    Widget de téléversement permissif :
+    Si l'utilisateur coche la case 'Supprimer' et sélectionne en même temps
+    un nouveau fichier, le nouveau fichier remplace l'existant sans déclencher
+    l'erreur de contradiction standard de Django (FILE_INPUT_CONTRADICTION).
+    """
+    clear_checkbox_label = "Supprimer la pièce jointe actuelle"
+    initial_text = "Fichier actuellement associé"
+    input_text = "Sélectionner un nouveau fichier"
+
+    def value_from_datadict(self, data, files, name):
+        upload = files.get(name)
+        # Si un nouveau fichier est téléversé, il a la priorité absolue (remplacement)
+        if upload:
+            return upload
+        # Sinon, si la case d'effacement est cochée, on supprime le fichier
+        if not self.is_required and forms.CheckboxInput().value_from_datadict(
+            data, files, self.clear_checkbox_name(name)
+        ):
+            return False
+        return upload
+
+
 class AlerteForm(forms.ModelForm):
     class Meta:
         model = Alerte
@@ -35,7 +59,7 @@ class AlerteForm(forms.ModelForm):
                 },
                 format='%Y-%m-%dT%H:%M'
             ),
-            'piece_jointe': forms.ClearableFileInput(attrs={
+            'piece_jointe': PermissiveClearableFileInput(attrs={
                 'class': 'form-control',
                 'accept': '.pdf,.png,.jpg,.jpeg,.webp,.doc,.docx',
             }),

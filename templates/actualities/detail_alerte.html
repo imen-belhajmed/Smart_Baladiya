@@ -28,7 +28,8 @@
         <a href="{% url 'actualites:list' %}" class="btn">← Retour au fil d'actualités</a>
         {% if user.is_authenticated and user.est_agent or user.is_staff %}
             <a href="{% url 'actualites:modifier_alerte' alerte.pk %}" class="btn btn-bleu btn-petit">✏️ Modifier</a>
-            <a href="{% url 'actualites:creer_alerte' %}" class="btn btn-rouge btn-petit">+ Nouvelle alerte</a>
+            <a href="{% url 'actualites:supprimer_alerte' alerte.pk %}" class="btn btn-rouge btn-petit">🗑️ Supprimer</a>
+            <a href="{% url 'actualites:creer_alerte' %}" class="btn btn-petit">+ Nouvelle alerte</a>
         {% endif %}
     </div>
 </div>
