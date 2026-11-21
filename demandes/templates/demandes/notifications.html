@@ -1,0 +1,8 @@
+{% extends 'demandes/base_demandes.html' %}
+{% block title %}Notifications{% endblock %}
+{% block content %}
+<h2 class="mb-3">Notifications</h2>
+{% for n in notifs %}
+  <a class="card dm-notif {% if not n.lue %}non-lue{% endif %}" href="{{ n.lien|default:'#' }}"><span>{{ n.message }}</span><small>{{ n.date_creation|date:"d/m/Y H:i" }}</small></a>
+{% empty %}<div class="card"><div class="card-body text-center text-muted">Aucune notification.</div></div>{% endfor %}
+{% endblock %}

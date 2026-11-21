@@ -1,0 +1,35 @@
+{% extends 'demandes/base_demandes.html' %}
+{% load demandes_tags %}
+{% block title %}Espace agent{% endblock %}
+{% block content %}
+<h2 class="mb-1">Espace agent municipal – Gestion des demandes</h2>
+<p class="text-muted">Validez, rejetez ou supprimez les demandes des citoyens.</p>
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md"><div class="card dm-kpi"><strong>{{ stats.total }}</strong><span>Total</span></div></div>
+  <div class="col-6 col-md"><div class="card dm-kpi"><strong>{{ stats.en_attente }}</strong><span>En attente</span></div></div>
+  <div class="col-6 col-md"><div class="card dm-kpi"><strong>{{ stats.en_cours }}</strong><span>En cours</span></div></div>
+  <div class="col-6 col-md"><div class="card dm-kpi"><strong>{{ stats.validee }}</strong><span>Validées</span></div></div>
+  <div class="col-6 col-md"><div class="card dm-kpi"><strong>{{ stats.rejetee }}</strong><span>Rejetées</span></div></div>
+</div>
+<form method="get" class="row g-2 mb-3">
+  <div class="col-md-5"><input class="form-control" type="text" name="q" value="{{ q }}" placeholder="Rechercher un citoyen ou un motif…"></div>
+  <div class="col-md-4"><select class="form-select" name="statut"><option value="">Tous les statuts</option>{% for code, libelle in statuts %}<option value="{{ code }}" {% if statut == code %}selected{% endif %}>{{ libelle }}</option>{% endfor %}</select></div>
+  <div class="col-md-3"><button class="btn btn-primary w-100" type="submit">Filtrer</button></div>
+</form>
+<div class="card"><div class="table-responsive"><table class="table table-hover align-middle mb-0">
+  <thead><tr><th>Citoyen</th><th>Type de document</th><th>Statut</th><th>Prévu avant</th><th>Créée le</th><th class="text-end">Actions</th></tr></thead>
+  <tbody>
+  {% for d in demandes %}
+    <tr>
+      <td>{{ d.citoyen.username }}</td><td>{{ d.get_type_document_display }}</td>
+      <td><span class="badge bg-{{ d.statut|couleur_statut }}">{{ d.get_statut_display }}</span>{% if d.en_retard %} <span class="badge bg-danger">En retard</span>{% endif %}</td>
+      <td>{{ d.date_prevue|date:"d/m/Y H:i" }}</td><td>{{ d.date_creation|date:"d/m/Y H:i" }}</td>
+      <td class="text-end text-nowrap">
+        <a href="{% url 'demandes:detail' d.pk %}" class="btn btn-sm btn-outline-primary">Voir</a>
+        <a href="{% url 'demandes:traiter_demande' d.pk %}" class="btn btn-sm btn-primary">Traiter</a>
+        <a href="{% url 'demandes:supprimer' d.pk %}" class="btn btn-sm btn-outline-danger">Supprimer</a>
+      </td>
+    </tr>
+  {% empty %}<tr><td colspan="6" class="text-center text-muted py-4">Aucune demande.</td></tr>{% endfor %}
+  </tbody></table></div></div>
+{% endblock %}
