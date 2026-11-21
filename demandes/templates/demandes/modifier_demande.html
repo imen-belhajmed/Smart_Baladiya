@@ -1,16 +1,13 @@
-{% extends 'base.html' %}
+{% extends 'demandes/base_demandes.html' %}
 {% block title %}Modifier ma demande{% endblock %}
 {% block content %}
-<div class="card" style="max-width:640px; margin:0 auto">
-    <h1>Modifier ma demande</h1>
-    <p class="sous-titre" style="margin-bottom:1.2rem">{{ demande.get_type_document_display }} – modifiable tant qu'elle est en attente.</p>
-    <form method="post" enctype="multipart/form-data" class="formulaire">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <div class="actions">
-            <button type="submit" class="btn btn-bleu">Mettre à jour</button>
-            <a href="{% url 'demandes:liste' %}" class="btn">Retour</a>
-        </div>
-    </form>
-</div>
+<div class="row justify-content-center"><div class="col-lg-7"><div class="card"><div class="card-body p-4">
+  <h2>Modifier ma demande</h2>
+  <p class="text-muted">{{ demande.get_type_document_display }} – modifiable tant qu'elle est en attente.</p>
+  <form method="post" enctype="multipart/form-data">{% csrf_token %}
+    {% include 'demandes/_champs.html' %}
+    <button class="btn btn-primary">Mettre à jour</button>
+    <a href="{% url 'demandes:liste' %}" class="btn btn-light">Retour</a>
+  </form>
+</div></div></div></div>
 {% endblock %}

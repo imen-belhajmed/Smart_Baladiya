@@ -1,0 +1,22 @@
+{% extends 'demandes/base_demandes.html' %}{% load static %}
+{% block title %}Accueil{% endblock %}
+{% block content %}
+<div class="row justify-content-center"><div class="col-lg-9">
+  <div class="dm-hero mb-4">
+    <img src="{% static 'demandes/logo.svg' %}" height="96" class="mb-3 bg-white rounded-circle p-1" alt="logo">
+    <h1 class="fw-bold">Smart Baladiya</h1>
+    <p class="lead mb-4">Plateforme intelligente de digitalisation des services municipaux tunisiens</p>
+    {% if user.est_agent %}
+      <a href="{% url 'demandes:tableau_agent' %}" class="btn btn-light btn-lg">Espace agent</a>
+    {% else %}
+      <a href="{% url 'demandes:creer' %}" class="btn btn-light btn-lg me-2">Nouvelle demande</a>
+      <a href="{% url 'demandes:liste' %}" class="btn btn-outline-light btn-lg">Mes demandes</a>
+    {% endif %}
+  </div>
+  <div class="row g-3 justify-content-center">
+    {% for libelle, valeur in stats %}
+      <div class="col-6 col-md-3"><div class="card dm-kpi"><strong>{{ valeur }}</strong><span>{{ libelle }}</span></div></div>
+    {% endfor %}
+  </div>
+</div></div>
+{% endblock %}

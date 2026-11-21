@@ -1,22 +1,19 @@
-{% extends 'base.html' %}
+{% extends 'demandes/base_demandes.html' %}
 {% block title %}Traiter la demande{% endblock %}
 {% block content %}
-<div class="card" style="max-width:700px; margin:0 auto">
-    <h1>Traiter la demande de {{ demande.citoyen.username }}</h1>
-    <dl class="details" style="margin-bottom:1.2rem">
-        <dt>Document</dt><dd>{{ demande.get_type_document_display }}</dd>
-        <dt>Motif</dt><dd>{{ demande.motif|default:"Aucun" }}</dd>
-        <dt>Prévu avant le</dt><dd>{{ demande.date_prevue|date:"d/m/Y H:i" }}{% if demande.en_retard %} <span class="badge badge-retard">En retard</span>{% endif %}</dd>
-        {% if demande.piece_jointe %}<dt>Pièce justificative</dt><dd><a href="{{ demande.piece_jointe.url }}" target="_blank">Ouvrir</a></dd>{% endif %}
-    </dl>
-    <form method="post" enctype="multipart/form-data" class="formulaire">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <p class="helptext">Pour valider, joignez le document délivré : une empreinte SHA-256 unique est enregistrée pour garantir son authenticité.</p>
-        <div class="actions">
-            <button type="submit" class="btn btn-vert">Enregistrer</button>
-            <a href="{% url 'demandes:tableau_agent' %}" class="btn">Retour à l'espace agent</a>
-        </div>
-    </form>
-</div>
+<div class="row justify-content-center"><div class="col-lg-8"><div class="card"><div class="card-body p-4">
+  <h2>Traiter la demande de {{ demande.citoyen.username }}</h2>
+  <dl class="row">
+    <dt class="col-sm-4">Document</dt><dd class="col-sm-8">{{ demande.get_type_document_display }}</dd>
+    <dt class="col-sm-4">Motif</dt><dd class="col-sm-8">{{ demande.motif|default:"Aucun" }}</dd>
+    <dt class="col-sm-4">Prévu avant le</dt><dd class="col-sm-8">{{ demande.date_prevue|date:"d/m/Y H:i" }}{% if demande.en_retard %} <span class="badge bg-danger">En retard</span>{% endif %}</dd>
+    {% if demande.piece_jointe %}<dt class="col-sm-4">Pièce justificative</dt><dd class="col-sm-8"><a href="{{ demande.piece_jointe.url }}" target="_blank">Ouvrir</a></dd>{% endif %}
+  </dl>
+  <form method="post" enctype="multipart/form-data">{% csrf_token %}
+    {% include 'demandes/_champs.html' %}
+    <p class="text-muted small">Pour valider, joignez le document délivré : une empreinte SHA-256 unique est enregistrée pour garantir son authenticité.</p>
+    <button class="btn btn-success">Enregistrer</button>
+    <a href="{% url 'demandes:tableau_agent' %}" class="btn btn-light">Retour à l'espace agent</a>
+  </form>
+</div></div></div></div>
 {% endblock %}

@@ -5,7 +5,8 @@ from . import views
 app_name = 'demandes'
 
 urlpatterns = [
-    path('', views.liste_demandes, name='liste'),
+    path('', views.accueil, name='accueil'),
+    path('mes-demandes/', views.liste_demandes, name='liste'),
     path('nouvelle/', views.creer_demande, name='creer'),
     path('<int:pk>/', views.detail_demande, name='detail'),
     path('modifier/<int:pk>/', views.modifier_demande, name='modifier'),

@@ -58,13 +58,37 @@ class DemandesTests(TestCase):
         self.assertRedirects(self.client.get(reverse('demandes:modifier', args=[d2.pk])), reverse('demandes:liste'))
 
     # ---------- Agent
-    def test_espace_agent_reserve(self):
+    # ---------- Séparation des acteurs
+    def test_citoyen_ne_peut_pas_entrer_dans_l_espace_agent(self):
         d = self.demande()
+        accueil = reverse('demandes:accueil')
         self.client.force_login(self.citoyen)
-        self.assertEqual(self.client.get(reverse('demandes:tableau_agent')).status_code, 403)
-        self.assertEqual(self.client.get(reverse('demandes:traiter_demande', args=[d.pk])).status_code, 403)
+        for nom, args in [('tableau_agent', []), ('traiter_demande', [d.pk]), ('supprimer', [d.pk])]:
+            self.assertRedirects(self.client.get(reverse(f'demandes:{nom}', args=args)), accueil)
+        self.assertTrue(DemandeAdministrative.objects.filter(pk=d.pk).exists())
+        r = self.client.get(accueil)
+        self.assertContains(r, 'Mes demandes')
+        self.assertNotContains(r, 'Espace agent')
+
+    def test_agent_ne_peut_pas_entrer_dans_l_espace_citoyen(self):
+        d = self.demande()
+        accueil = reverse('demandes:accueil')
         self.client.force_login(self.agent)
+        for nom, args in [('liste', []), ('creer', []), ('modifier', [d.pk])]:
+            self.assertRedirects(self.client.get(reverse(f'demandes:{nom}', args=args)), accueil)
+        self.client.post(reverse('demandes:annuler', args=[d.pk]))
+        d.refresh_from_db()
+        self.assertEqual(d.statut, 'en_attente')
+        r = self.client.get(accueil)
+        self.assertContains(r, 'Espace agent')
+        self.assertNotContains(r, 'Nouvelle demande')
+        self.assertNotContains(r, 'Mes demandes')
         self.assertEqual(self.client.get(reverse('demandes:tableau_agent')).status_code, 200)
+
+    def test_visiteur_non_connecte(self):
+        self.assertEqual(self.client.get(reverse('demandes:accueil')).status_code, 302)
+        self.assertEqual(self.client.get(reverse('demandes:liste')).status_code, 302)
+        self.assertEqual(self.client.get(reverse('demandes:verifier')).status_code, 200)
 
     def test_validation_exige_un_document(self):
         d = self.demande()
@@ -93,6 +117,12 @@ class DemandesTests(TestCase):
         self.assertEqual(self.client.get(reverse('demandes:telecharger', args=[d.pk])).status_code, 200)
         self.client.force_login(self.autre)
         self.assertEqual(self.client.get(reverse('demandes:telecharger', args=[d.pk])).status_code, 403)
+
+    def test_citoyen_ne_peut_pas_supprimer(self):
+        d = self.demande()
+        self.client.force_login(self.citoyen)
+        self.client.post(reverse('demandes:supprimer', args=[d.pk]))
+        self.assertTrue(DemandeAdministrative.objects.filter(pk=d.pk).exists())
 
     def test_suppression_par_agent(self):
         d = self.demande()
@@ -139,6 +169,8 @@ class DemandesTests(TestCase):
     def test_notifications_marquees_lues(self):
         self.demande()
         self.client.force_login(self.citoyen)
-        self.assertTrue(self.client.get(reverse('home')).context['nb_notifs_demandes'] > 0)
+        non_lues = self.citoyen.notifications_demandes.filter(lue=False).count()
+        self.assertGreater(non_lues, 0)
+        self.assertContains(self.client.get(reverse('demandes:accueil')), f'>{non_lues}</span>')
         self.client.get(reverse('demandes:notifications'))
         self.assertEqual(self.citoyen.notifications_demandes.filter(lue=False).count(), 0)

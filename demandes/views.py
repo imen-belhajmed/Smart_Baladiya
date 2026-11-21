@@ -13,15 +13,22 @@ from .forms import DemandeAdministrativeForm, TraitementForm, VerificationForm
 from .models import DemandeAdministrative, Notification
 
 
-def agent_requis(vue):
-    """Réservé aux agents municipaux et administrateurs (rôle 'agent' / 'admin')."""
-    @wraps(vue)
-    @login_required
-    def enveloppe(request, *args, **kwargs):
-        if not request.user.est_agent:
-            raise PermissionDenied
-        return vue(request, *args, **kwargs)
-    return enveloppe
+def _acteur(autorise, message):
+    """Réserve une vue à un acteur : l'autre acteur est renvoyé vers sa propre page d'accueil."""
+    def decorateur(vue):
+        @wraps(vue)
+        @login_required
+        def enveloppe(request, *args, **kwargs):
+            if not autorise(request.user):
+                messages.error(request, message)
+                return redirect('demandes:accueil')
+            return vue(request, *args, **kwargs)
+        return enveloppe
+    return decorateur
+
+
+agent_requis = _acteur(lambda u: u.est_agent, "Cette page est réservée aux agents municipaux.")
+citoyen_requis = _acteur(lambda u: not u.est_agent, "Cette page est réservée aux citoyens.")
 
 
 def _demande_visible(request, pk):
@@ -32,8 +39,22 @@ def _demande_visible(request, pk):
     return demande
 
 
-# ---------------------------------------------------------------- Citoyen
+# ---------------------------------------------------------------- Accueil (adapté à l'acteur)
 @login_required
+def accueil(request):
+    if request.user.est_agent:
+        qs = DemandeAdministrative.objects.all()
+        stats = [('Total', qs.count()), ('En attente', qs.filter(statut='en_attente').count()),
+                 ('En cours', qs.filter(statut='en_cours').count()), ('Validées', qs.filter(statut='validee').count())]
+    else:
+        qs = DemandeAdministrative.objects.filter(citoyen=request.user)
+        stats = [('Mes demandes', qs.count()), ('En attente', qs.filter(statut='en_attente').count()),
+                 ('Validées', qs.filter(statut='validee').count()), ('Rejetées', qs.filter(statut='rejetee').count())]
+    return render(request, 'demandes/accueil.html', {'stats': stats})
+
+
+# ---------------------------------------------------------------- Citoyen
+@citoyen_requis
 def liste_demandes(request):
     """Historique et statut des demandes de l'utilisateur connecté."""
     demandes = DemandeAdministrative.objects.filter(citoyen=request.user)
@@ -47,7 +68,7 @@ def liste_demandes(request):
     })
 
 
-@login_required
+@citoyen_requis
 def creer_demande(request):
     """Création d'une demande : le délai est estimé automatiquement."""
     if request.method == 'POST':
@@ -72,7 +93,7 @@ def detail_demande(request, pk):
     return render(request, 'demandes/detail_demande.html', {'demande': demande})
 
 
-@login_required
+@citoyen_requis
 def modifier_demande(request, pk):
     """Modification possible uniquement par le propriétaire, tant que la demande est en attente."""
     demande = get_object_or_404(DemandeAdministrative, pk=pk, citoyen=request.user)
@@ -90,8 +111,8 @@ def modifier_demande(request, pk):
     return render(request, 'demandes/modifier_demande.html', {'form': form, 'demande': demande})
 
 
-@login_required
 @require_POST
+@citoyen_requis
 def annuler_demande(request, pk):
     """Annulation d'une demande en attente (elle reste dans l'historique)."""
     demande = get_object_or_404(DemandeAdministrative, pk=pk, citoyen=request.user)
@@ -104,16 +125,14 @@ def annuler_demande(request, pk):
     return redirect('demandes:liste')
 
 
-@login_required
+@agent_requis
 def supprimer_demande(request, pk):
-    """Suppression définitive : agent (toute demande) ou propriétaire (demande en attente)."""
-    demande = _demande_visible(request, pk)
-    if not request.user.est_agent and not demande.modifiable:
-        raise PermissionDenied
+    """Suppression définitive d'une demande (agent municipal)."""
+    demande = get_object_or_404(DemandeAdministrative, pk=pk)
     if request.method == 'POST':
         demande.delete()
         messages.success(request, 'La demande a été supprimée.')
-        return redirect('demandes:tableau_agent' if request.user.est_agent else 'demandes:liste')
+        return redirect('demandes:tableau_agent')
     return render(request, 'demandes/supprimer_demande.html', {'demande': demande})
 
 
