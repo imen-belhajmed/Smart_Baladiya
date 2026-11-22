@@ -1,0 +1,59 @@
+/* Styles propres aux pages du module Incidents */
+.incidents-page { max-width: 950px; margin: 0 auto; padding: 1rem 0 2rem; }
+
+.incidents-toolbar {
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;
+}
+
+.incidents-filtres {
+    display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; margin-bottom: 1.5rem;
+}
+
+/* Champs des formulaires et des filtres */
+.incidents-page input:not([type="checkbox"]):not([type="file"]),
+.incidents-page select,
+.incidents-page textarea {
+    width: 100%; padding: .55rem .7rem; border: 1px solid #c9c9c9;
+    border-radius: 6px; box-sizing: border-box; font: inherit;
+}
+.incidents-page .incidents-filtres select { width: auto; min-width: 200px; }
+
+.incident-form { max-width: 650px; }
+.incident-form > div { margin-bottom: 1rem; }
+.incident-form label { display: block; font-weight: 600; margin-bottom: .3rem; }
+.incident-form .helptext { display: block; color: #666; font-size: .85rem; }
+.incident-form .errorlist { color: #b00020; list-style: none; padding: 0; margin: .3rem 0 0; }
+.incident-form-actions { display: flex; gap: .5rem; margin-top: 1.2rem; }
+
+/* Tableau */
+.incidents-table-wrap { overflow-x: auto; }
+.incidents-table { width: 100%; border-collapse: collapse; }
+.incidents-table th, .incidents-table td {
+    padding: .7rem .6rem; text-align: left; border-bottom: 1px solid #e5e5e5;
+    vertical-align: middle;
+}
+.incidents-table th { background: #f6f6f6; }
+
+/* Badges de statut */
+.badge-statut {
+    display: inline-block; padding: .2rem .6rem; border-radius: 999px;
+    font-size: .8rem; font-weight: 700;
+}
+.statut-signale  { background: #fde2e2; color: #9b1c1c; }
+.statut-en_cours { background: #fff1cc; color: #8a5a00; }
+.statut-resolu   { background: #d9f2e1; color: #17653a; }
+
+/* Boutons d'action */
+.incident-actions { display: flex; gap: .4rem; flex-wrap: wrap; align-items: center; }
+.incident-actions form { display: inline; margin: 0; }
+
+/* Fenêtre de confirmation */
+dialog { border: 1px solid #ccc; border-radius: 10px; padding: 1.5rem; max-width: 420px; }
+dialog::backdrop { background: rgba(0, 0, 0, .5); }
+dialog form { display: flex; gap: .5rem; justify-content: flex-end; margin-top: 1rem; }
+
+/* Détail */
+.incident-photo { max-width: 100%; max-height: 420px; border-radius: 8px; margin: 1rem 0; }
+.incident-meta { list-style: none; padding: 0; color: #555; }
+.incident-meta li { margin-bottom: .3rem; }

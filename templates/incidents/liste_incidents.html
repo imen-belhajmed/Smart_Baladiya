@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Incidents signalés{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/incidents.css' %}">
+
+<div class="incidents-page">
+    <div class="incidents-toolbar">
+        <h2>Incidents signalés</h2>
+        <a href="{% url 'incidents:ajouter' %}" class="btn">+ Signaler un incident</a>
+    </div>
+
+    <form method="get" class="incidents-filtres">
+        <select name="statut">
+            <option value="">Tous les statuts</option>
+            {% for value, label in statuts %}
+                <option value="{{ value }}" {% if value == statut_actif %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+
+        <select name="categorie">
+            <option value="">Toutes les catégories</option>
+            {% for c in categories %}
+                <option value="{{ c.pk }}" {% if c.pk|stringformat:"s" == categorie_active %}selected{% endif %}>{{ c.nom }}</option>
+            {% endfor %}
+        </select>
+
+        <button type="submit" class="btn btn-petit">Filtrer</button>
+        <a href="{% url 'incidents:list' %}" class="btn btn-petit">Réinitialiser</a>
+    </form>
+
+    {% if incidents %}
+    <div class="incidents-table-wrap">
+        <table class="incidents-table">
+            <thead>
+                <tr>
+                    <th>Titre</th>
+                    <th>Catégorie</th>
+                    <th>Statut</th>
+                    <th>Date</th>
+                    <th>Auteur</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for i in incidents %}
+                <tr>
+                    <td>{{ i.titre }}</td>
+                    <td>{{ i.categorie }}</td>
+                    <td><span class="badge-statut statut-{{ i.statut }}">{{ i.get_statut_display }}</span></td>
+                    <td>{{ i.date_signalement|date:"d/m/Y H:i" }}</td>
+                    <td>{{ i.auteur.get_username }}</td>
+                    <td>
+                        <div class="incident-actions">
+                            <a href="{% url 'incidents:detail' i.pk %}" class="btn btn-petit">Détail</a>
+
+                            {% if user.is_staff %}
+                                <a href="{% url 'incidents:modifier' i.pk %}" class="btn btn-petit">Modifier</a>
+
+                                <button type="button" class="btn btn-petit"
+                                        onclick="document.getElementById('archiver-{{ i.pk }}').showModal()">
+                                    Archiver
+                                </button>
+
+                                <dialog id="archiver-{{ i.pk }}">
+                                    <h3>Confirmer l'archivage</h3>
+                                    <p>Archiver le signalement « {{ i.titre }} » ?</p>
+                                    <form method="post" action="{% url 'incidents:archiver' i.pk %}">
+                                        {% csrf_token %}
+                                        <button type="button" class="btn btn-petit"
+                                                onclick="this.closest('dialog').close()">Annuler</button>
+                                        <button type="submit" class="btn btn-petit">Archiver</button>
+                                    </form>
+                                </dialog>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+        <p>Aucun incident à afficher.</p>
+    {% endif %}
+</div>
+{% endblock %}

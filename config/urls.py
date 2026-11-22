@@ -11,7 +11,7 @@ urlpatterns = [
     # ===== Modules (chaque membre décommente SA ligne) =====
     path('demandes/', include('demandes.urls')), # Module 1
     # path('marches/', include('marches.urls')),   # Module 2 - Molka
-    # path('incidents/', include('incidents.urls')), # Module 3 - Zaineb
+    path('incidents/', include('incidents.urls')), # Module 3 - Zaineb
     # path('forum/', include('forum.urls')),     # Module 4 - Nour
     path('actualites/', include('actualites.urls')), # Module 5 - Ribel
     # path('dechets/', include('dechets.urls')),   # Module 6 - Mahmoud

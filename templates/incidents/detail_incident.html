@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ incident.titre }}{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/incidents.css' %}">
+
+<div class="incidents-page">
+    <p><a href="{% url 'incidents:list' %}">&larr; Retour à la liste</a></p>
+
+    <h2>{{ incident.titre }}</h2>
+    <p>
+        {{ incident.categorie }} &middot;
+        <span class="badge-statut statut-{{ incident.statut }}">{{ incident.get_statut_display }}</span>
+    </p>
+
+    {% if incident.photo %}
+        <img src="{{ incident.photo.url }}" alt="Photo de l'incident" class="incident-photo">
+    {% endif %}
+
+    {{ incident.description|linebreaks }}
+
+    <ul class="incident-meta">
+        <li>Signalé par : {{ incident.auteur.get_username }}</li>
+        <li>Le : {{ incident.date_signalement|date:"d/m/Y H:i" }}</li>
+        <li>
+            Position : {{ incident.latitude }}, {{ incident.longitude }}
+            (<a href="https://www.openstreetmap.org/?mlat={{ incident.latitude }}&amp;mlon={{ incident.longitude }}#map=17/{{ incident.latitude }}/{{ incident.longitude }}" target="_blank" rel="noopener">voir sur la carte</a>)
+        </li>
+    </ul>
+
+    {% if user.is_staff %}
+        <a href="{% url 'incidents:modifier' incident.pk %}" class="btn">Modifier</a>
+    {% endif %}
+</div>
+{% endblock %}
