@@ -17,8 +17,8 @@
     <li>Position : {{ incident.latitude }}, {{ incident.longitude }}
       (<a href="https://www.openstreetmap.org/?mlat={{ incident.latitude }}&mlon={{ incident.longitude }}#map=17/{{ incident.latitude }}/{{ incident.longitude }}" target="_blank">voir sur la carte</a>)</li>
   </ul>
-  {# {% if user.is_staff %} #}
-  {#   <a href="{% url 'incidents:modifier' incident.pk %}" class="btn btn-warning">Modifier</a> #}
-  {# {% endif %} #}
+  {% if user.is_staff %}
+    <a href="{% url 'incidents:modifier' incident.pk %}" class="btn btn-warning">Modifier</a>
+  {% endif %}
 </div>
 {% endblock %}

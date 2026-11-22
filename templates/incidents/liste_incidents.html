@@ -49,8 +49,8 @@
           <td>{{ i.auteur.get_username }}</td>
           <td class="text-end">
             <a href="{% url 'incidents:detail' i.pk %}" class="btn btn-sm btn-outline-primary">Détail</a>
-            {# {% if user.is_staff %} #}
-            {#   <a href="{% url 'incidents:modifier' i.pk %}" class="btn btn-sm btn-outline-warning">Modifier</a> #}
+            {% if user.is_staff %} 
+              <a href="{% url 'incidents:modifier' i.pk %}" class="btn btn-sm btn-outline-warning">Modifier</a> 
             {#   <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#archiver{{ i.pk }}">Archiver</button> #}
             {#  #}
             {#   <div class="modal fade" id="archiver{{ i.pk }}" tabindex="-1"> #}
@@ -67,7 +67,7 @@
             {#       </div> #}
             {#     </div></div> #}
             {#   </div> #}
-            {# {% endif %} #}
+            {% endif %}
           </td>
         </tr>
       {% endfor %}

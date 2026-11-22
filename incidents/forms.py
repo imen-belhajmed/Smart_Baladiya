@@ -41,3 +41,7 @@ class IncidentForm(forms.ModelForm):
             if photo.content_type not in TYPES_PHOTO:
                 raise forms.ValidationError("Formats acceptés : JPEG, PNG ou WebP.")
         return photo
+
+class IncidentUpdateForm(IncidentForm):
+    class Meta(IncidentForm.Meta):
+        fields = IncidentForm.Meta.fields + ["statut"]

@@ -1,8 +1,9 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
+from django.contrib.admin.views.decorators import staff_member_required
 
-from .forms import IncidentForm
+from .forms import IncidentForm, IncidentUpdateForm
 from .models import CategorieIncident, Incident
 
 
@@ -46,3 +47,17 @@ def liste_incidents(request):
 def detail_incident(request, pk):
     incident = get_object_or_404(Incident, pk=pk, est_archive=False)
     return render(request, "incidents/detail_incident.html", {"incident": incident})
+
+
+@staff_member_required
+def modifier_incident(request, pk):
+    incident = get_object_or_404(Incident, pk=pk, est_archive=False)
+    if request.method == "POST":
+        form = IncidentUpdateForm(request.POST, request.FILES, instance=incident)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "L'incident a été mis à jour.")
+            return redirect("incidents:detail", pk=incident.pk)
+    else:
+        form = IncidentUpdateForm(instance=incident)
+    return render(request, "incidents/modifier_incident.html", {"form": form, "incident": incident})
