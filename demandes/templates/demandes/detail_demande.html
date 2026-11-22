@@ -1,0 +1,36 @@
+{% extends 'demandes/base_demandes.html' %}
+{% load demandes_tags %}
+{% block title %}Demande{% endblock %}
+{% block content %}
+<div class="mb-3">
+  <h2 class="mb-1">{{ demande.get_type_document_display }}</h2>
+  <span class="badge bg-{{ demande.statut|couleur_statut }} fs-6">{{ demande.get_statut_display }}</span>
+  {% if demande.en_retard %}<span class="badge bg-danger fs-6">En retard</span>{% endif %}
+</div>
+{% if demande.en_retard %}<div class="alert alert-warning">⏰ Cette demande dépasse le délai estimé. Les agents ont été prévenus.</div>{% endif %}
+<div class="card"><div class="card-body p-4">
+  <dl class="row mb-0">
+    <dt class="col-sm-4">Demandeur</dt><dd class="col-sm-8">{{ demande.citoyen }}</dd>
+    <dt class="col-sm-4">Motif</dt><dd class="col-sm-8">{{ demande.motif|default:"—"|linebreaksbr }}</dd>
+    <dt class="col-sm-4">Créée le</dt><dd class="col-sm-8">{{ demande.date_creation|date:"d/m/Y H:i" }}</dd>
+    <dt class="col-sm-4">Délai estimé</dt><dd class="col-sm-8">{{ demande.delai_estime_heures }} h</dd>
+    <dt class="col-sm-4">Traitement prévu avant le</dt><dd class="col-sm-8">{{ demande.date_prevue|date:"d/m/Y H:i"|default:"—" }}</dd>
+    {% if demande.commentaire_agent %}<dt class="col-sm-4">Observation de l'agent</dt><dd class="col-sm-8">{{ demande.commentaire_agent|linebreaksbr }}</dd>{% endif %}
+    {% if demande.piece_jointe %}<dt class="col-sm-4">Pièce justificative</dt><dd class="col-sm-8"><a href="{{ demande.piece_jointe.url }}" target="_blank">Ouvrir</a></dd>{% endif %}
+    <dt class="col-sm-4">Code de vérification</dt><dd class="col-sm-8"><span class="dm-hash">{{ demande.empreinte_verification }}</span></dd>
+    {% if demande.empreinte_document %}<dt class="col-sm-4">Empreinte SHA-256</dt><dd class="col-sm-8"><span class="dm-hash">{{ demande.empreinte_document }}</span></dd>{% endif %}
+  </dl>
+  <div class="mt-4 d-flex flex-wrap gap-2">
+    {% if demande.document_delivre %}<a class="btn btn-success" href="{% url 'demandes:telecharger' demande.pk %}"><i class="bi bi-download"></i> Télécharger le document délivré</a>{% endif %}
+    <a class="btn btn-outline-dark" href="{% url 'demandes:verifier' %}?code={{ demande.empreinte_verification }}"><i class="bi bi-shield-check"></i> Vérifier l'authenticité</a>
+    {% if user.est_agent %}
+      <a class="btn btn-primary" href="{% url 'demandes:traiter_demande' demande.pk %}">Traiter</a>
+      <a class="btn btn-outline-danger" href="{% url 'demandes:supprimer' demande.pk %}">Supprimer</a>
+      <a class="btn btn-light" href="{% url 'demandes:tableau_agent' %}">← Espace agent</a>
+    {% else %}
+      {% if demande.modifiable %}<a class="btn btn-outline-secondary" href="{% url 'demandes:modifier' demande.pk %}">Modifier</a>{% endif %}
+      <a class="btn btn-light" href="{% url 'demandes:liste' %}">← Mes demandes</a>
+    {% endif %}
+  </div>
+</div></div>
+{% endblock %}

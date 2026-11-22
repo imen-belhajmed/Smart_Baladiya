@@ -19,7 +19,7 @@ INSTALLED_APPS = [
     # ===== Socle commun =====
     'accounts',
     # ===== Modules (chaque membre décommente SA ligne) =====
-    #'demandes', # Module 1 - Imen
+    'demandes', # Module 1
     # 'marches',   # Module 2 - Molka
     'incidents', # Module 3 - Zaineb
     # 'forum',     # Module 4 - Nour
