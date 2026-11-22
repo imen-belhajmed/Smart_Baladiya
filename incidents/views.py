@@ -1,7 +1,8 @@
 from django.contrib import messages
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
-from django.contrib.admin.views.decorators import staff_member_required
+from django.views.decorators.http import require_POST
 
 from .forms import IncidentForm, IncidentUpdateForm
 from .models import CategorieIncident, Incident
@@ -34,13 +35,14 @@ def liste_incidents(request):
     if categorie.isdigit():
         incidents = incidents.filter(categorie_id=int(categorie))
 
-    return render(request, "incidents/liste_incidents.html", {
+    context = {
         "incidents": incidents,
         "categories": CategorieIncident.objects.all(),
         "statuts": Incident.Statut.choices,
         "statut_actif": statut,
         "categorie_active": categorie,
-    })
+    }
+    return render(request, "incidents/liste_incidents.html", context)
 
 
 @login_required
@@ -49,7 +51,7 @@ def detail_incident(request, pk):
     return render(request, "incidents/detail_incident.html", {"incident": incident})
 
 
-@staff_member_required
+@staff_member_required(login_url="accounts:login")
 def modifier_incident(request, pk):
     incident = get_object_or_404(Incident, pk=pk, est_archive=False)
     if request.method == "POST":
@@ -60,4 +62,18 @@ def modifier_incident(request, pk):
             return redirect("incidents:detail", pk=incident.pk)
     else:
         form = IncidentUpdateForm(instance=incident)
-    return render(request, "incidents/modifier_incident.html", {"form": form, "incident": incident})
+    return render(
+        request,
+        "incidents/modifier_incident.html",
+        {"form": form, "incident": incident},
+    )
+
+
+@staff_member_required(login_url="accounts:login")
+@require_POST
+def archiver_incident(request, pk):
+    incident = get_object_or_404(Incident, pk=pk, est_archive=False)
+    incident.est_archive = True
+    incident.save(update_fields=["est_archive"])
+    messages.success(request, f"Le signalement « {incident.titre} » a été archivé.")
+    return redirect("incidents:list")
