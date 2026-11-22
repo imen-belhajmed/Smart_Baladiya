@@ -1,4 +1,6 @@
-{% load static %}<!DOCTYPE html>
+
+{% load static %}
+<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -9,26 +11,49 @@
 <body>
 <nav class="navbar">
     <a class="brand" href="{% url 'home' %}">Smart Baladiya</a>
+
     <div class="links">
-        {#<a href="{% url 'demandes:list' %}">Demandes</a>}
+        {# <a href="{% url 'demandes:list' %}">Demandes</a> #}
         {# <a href="{% url 'marches:list' %}">Marchés</a> #}
-        {# <a href="{% url 'incidents:list' %}">Incidents</a> #}
+        <a href="{% url 'incidents:list' %}">Incidents</a>
         {# <a href="{% url 'forum:list' %}">Forum</a> #}
-        {# <a href="{% url 'actualites:list' %}">Actualités</a> #}
+        <a href="{% url 'actualites:list' %}">Actualités & Alertes</a>
         {# <a href="{% url 'dechets:list' %}">Déchets</a> #}
     </div>
+
     <div class="user">
         {% if user.is_authenticated %}
             {{ user }} ({{ user.get_role_display }})
+
             <form method="post" action="{% url 'accounts:logout' %}">
                 {% csrf_token %}
-                <button class="btn btn-petit" type="submit">Déconnexion</button>
+                <button class="btn btn-petit" type="submit">
+                    Déconnexion
+                </button>
             </form>
         {% else %}
             <a href="{% url 'accounts:login' %}">Connexion</a>
         {% endif %}
     </div>
 </nav>
+
+{% if alerte_urgente_bandeau %}
+    <aside class="bandeau-alerte-urgente" role="alert" aria-label="Alerte municipale urgente">
+        <div class="bandeau-contenu">
+            <span class="bandeau-icone">⚠️</span>
+            <div class="bandeau-texte">
+                <strong>ALERTE URGENTE ({{ alerte_urgente_bandeau.get_niveau_urgence_display }}) : {{ alerte_urgente_bandeau.titre }}</strong>
+                <span>{{ alerte_urgente_bandeau.contenu|truncatewords:24 }}</span>
+            </div>
+        </div>
+        <div>
+            <a href="{% url 'actualites:detail_alerte' alerte_urgente_bandeau.pk %}" class="btn btn-petit" style="background:#fff; color:#900C19; border-color:#fff; font-weight:700;">
+                Consulter l'alerte →
+            </a>
+        </div>
+    </aside>
+{% endif %}
+
 <main class="container">
     {% if messages %}
         <ul class="messages">
@@ -37,6 +62,7 @@
             {% endfor %}
         </ul>
     {% endif %}
+
     {% block content %}{% endblock %}
 </main>
 </body>

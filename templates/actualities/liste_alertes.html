@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+
+{% block title %}Fil d'actualités & Alertes officielles{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Fil d'actualités & Alertes municipales</h1>
+        <p class="sous-titre">Restez informé en temps réel des communications, arrêtés et consignes officielles.</p>
+    </div>
+    {% if user.is_authenticated and user.est_agent or user.is_staff %}
+    <div>
+        <a href="{% url 'actualites:creer_alerte' %}" class="btn btn-rouge">
+            📢 + Publier une alerte
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+{# Bandeau d'alerte urgente en vedette au sein du fil d'actualités #}
+{% if alerte_urgente_vedette %}
+    <div class="card" style="background: #FFF5F5; border: 2px solid #900C19; border-radius: 12px; margin-bottom: 1.5rem;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 0.8rem;">
+                <span style="font-size: 2rem;">🚨</span>
+                <div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.2rem;">
+                        <span class="badge {{ alerte_urgente_vedette.badge_classe }}">{{ alerte_urgente_vedette.get_niveau_urgence_display }}</span>
+                        <strong style="color: #900C19; font-size: 1.15rem;">{{ alerte_urgente_vedette.titre }}</strong>
+                    </div>
+                    <p style="margin: 0; color: #4A1519;">
+                        {{ alerte_urgente_vedette.contenu|truncatewords:30 }}
+                    </p>
+                </div>
+            </div>
+            <div>
+                <a href="{% url 'actualites:detail_alerte' alerte_urgente_vedette.pk %}" class="btn btn-rouge">
+                    Consulter l'alerte urgente →
+                </a>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+{# Barre de recherche et filtres #}
+<div class="card" style="padding: 1rem; margin-bottom: 1.5rem;">
+    <form method="get" class="barre-recherche" action="{% url 'actualites:list' %}" style="margin: 0;">
+        <input type="text" name="q" value="{{ recherche }}" placeholder="Rechercher une annonce, un mot-clé, une consigne..." aria-label="Rechercher">
+        {% if urgence_active %}<input type="hidden" name="urgence" value="{{ urgence_active }}">{% endif %}
+        {% if statut_actif %}<input type="hidden" name="statut" value="{{ statut_actif }}">{% endif %}
+        <button type="submit" class="btn btn-bleu">Rechercher</button>
+        {% if recherche %}
+            <a href="{% url 'actualites:list' %}{% if urgence_active %}?urgence={{ urgence_active }}{% endif %}" class="btn">Réinitialiser</a>
+        {% endif %}
+    </form>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; margin-top: 0.8rem;">
+        {# Filtres d'urgences #}
+        <div class="filtres" style="margin: 0;">
+            <a href="{% url 'actualites:list' %}?statut={{ statut_actif }}{% if recherche %}&q={{ recherche }}{% endif %}"
+               class="btn btn-petit {% if not urgence_active %}btn-bleu{% endif %}">
+                Toutes urgences
+            </a>
+            {% for val, label in urgences %}
+                <a href="{% url 'actualites:list' %}?urgence={{ val }}&statut={{ statut_actif }}{% if recherche %}&q={{ recherche }}{% endif %}"
+                   class="btn btn-petit {% if urgence_active == val %}btn-bleu{% endif %}">
+                    {{ label }}
+                </a>
+            {% endfor %}
+        </div>
+
+        {# Filtres de statut (actives vs archives) #}
+        <div style="font-size: 0.88rem;">
+            <a href="{% url 'actualites:list' %}?statut=actives{% if urgence_active %}&urgence={{ urgence_active }}{% endif %}{% if recherche %}&q={{ recherche }}{% endif %}"
+               style="font-weight: {% if statut_actif == 'actives' or not statut_actif %}700{% else %}400{% endif %}; margin-right: 0.8rem;">
+                Actives ({{ total_actives }})
+            </a>
+            <a href="{% url 'actualites:list' %}?statut=archives{% if urgence_active %}&urgence={{ urgence_active }}{% endif %}{% if recherche %}&q={{ recherche }}{% endif %}"
+               style="font-weight: {% if statut_actif == 'archives' %}700{% else %}400{% endif %}; color: var(--gris);">
+                Archives expirées ({{ total_archives }})
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="layout-actualites">
+    {# Colonne principale : Fil d'actualités #}
+    <section>
+        {% if alertes %}
+            <div style="display: flex; flex-direction: column; gap: 1.2rem;">
+                {% for alerte in alertes %}
+                    <article class="card card-alerte urgence-{{ alerte.niveau_urgence }}">
+                        <div class="page-header" style="margin-bottom: 0.5rem;">
+                            <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+                                <span class="badge {{ alerte.badge_classe }}">{{ alerte.get_niveau_urgence_display }}</span>
+                                {% if alerte.est_expiree %}
+                                    <span class="badge badge-expiree">Expirée</span>
+                                {% else %}
+                                    <span class="badge badge-validee">Active</span>
+                                {% endif %}
+                                <h2 style="margin: 0;">
+                                    <a href="{% url 'actualites:detail_alerte' alerte.pk %}" style="text-decoration: none; color: inherit;">
+                                        {{ alerte.titre }}
+                                    </a>
+                                </h2>
+                            </div>
+                            <small style="color: var(--gris);">
+                                {{ alerte.date_publication|date:"d/m/Y à H:i" }}
+                                {% if alerte.date_mise_a_jour and alerte.date_mise_a_jour|date:"U" != alerte.date_publication|date:"U" %}
+                                    &bull; <em>Mis à jour le {{ alerte.date_mise_a_jour|date:"d/m/Y à H:i" }}</em>
+                                {% endif %}
+                            </small>
+                        </div>
+
+                        <p style="margin: 0.5rem 0 1rem; color: var(--texte); line-height: 1.6;">
+                            {{ alerte.contenu|truncatewords:40 }}
+                        </p>
+
+                        <div class="actions" style="margin-top: 0.5rem; justify-content: space-between;">
+                            <div style="font-size: 0.88rem; color: var(--gris);">
+                                ⏳ Fin de validité : <strong>{{ alerte.date_expiration|date:"d/m/Y à H:i" }}</strong>
+                                {% if alerte.piece_jointe %}
+                                    &bull; 📎 <span style="color: var(--bleu);">Document joint ({{ alerte.extension_piece_jointe }})</span>
+                                {% endif %}
+                            </div>
+                            <div style="display: flex; gap: 0.4rem; align-items: center;">
+                                {% if user.is_authenticated and user.est_agent or user.is_staff %}
+                                    <a href="{% url 'actualites:modifier_alerte' alerte.pk %}" class="btn btn-petit" title="Modifier le communiqué">
+                                        ✏️ Modifier
+                                    </a>
+                                    <a href="{% url 'actualites:supprimer_alerte' alerte.pk %}" class="btn btn-petit btn-rouge" title="Supprimer ou archiver l'alerte">
+                                        🗑️ Supprimer
+                                    </a>
+                                {% endif %}
+                                <a href="{% url 'actualites:detail_alerte' alerte.pk %}" class="btn btn-petit btn-bleu">
+                                    Consulter l'annonce →
+                                </a>
+                            </div>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="card vide">
+                <p>Aucune alerte correspondante n'a été trouvée.</p>
+                {% if recherche or urgence_active or statut_actif == 'archives' %}
+                    <p><a href="{% url 'actualites:list' %}" class="btn btn-petit">Afficher toutes les alertes actives</a></p>
+                {% endif %}
+            </div>
+        {% endif %}
+    </section>
+
+    {# Colonne latérale : Calendrier des événements et prochaines échéances #}
+    <aside>
+        <div class="card">
+            <h2 style="font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem; margin-top: 0;">
+                <span>📅</span> Calendrier des échéances
+            </h2>
+            <p class="sous-titre" style="font-size: 0.85rem; margin-bottom: 1rem;">
+                Dates limites des avis, travaux et consignes en cours dans la municipalité.
+            </p>
+
+            {% if prochaines_echeances %}
+                <div>
+                    {% for echeance in prochaines_echeances %}
+                        <div class="calendrier-item">
+                            <div class="calendrier-date">
+                                <div class="calendrier-jour">{{ echeance.date_expiration|date:"d" }}</div>
+                                <div class="calendrier-mois">{{ echeance.date_expiration|date:"M" }}</div>
+                            </div>
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="font-size: 0.88rem; font-weight: 600; line-height: 1.3;">
+                                    <a href="{% url 'actualites:detail_alerte' echeance.pk %}" style="text-decoration: none; color: var(--texte);">
+                                        {{ echeance.titre|truncatechars:35 }}
+                                    </a>
+                                </div>
+                                <div style="font-size: 0.78rem; color: var(--gris); margin-top: 0.2rem;">
+                                    Jusqu'à {{ echeance.date_expiration|date:"H:i" }} &bull;
+                                    <span class="badge {{ echeance.badge_classe }}" style="font-size: 0.75rem; padding: 0.05rem 0.4rem;">
+                                        {{ echeance.get_niveau_urgence_display }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="vide" style="padding: 1rem; font-size: 0.88rem;">Aucune échéance immédiate programmée.</p>
+            {% endif %}
+        </div>
+    </aside>
+</div>
+{% endblock %}

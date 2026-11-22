@@ -1,0 +1,33 @@
+{% extends 'demandes/base_demandes.html' %}
+{% load demandes_tags %}
+{% block title %}Mes demandes{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+  <div><h2 class="mb-0">Mes demandes administratives</h2>
+  <p class="text-muted mb-0">Historique, statut et délai estimé de vos demandes.</p></div>
+  <a href="{% url 'demandes:creer' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Nouvelle demande</a>
+</div>
+<div class="mb-3 d-flex flex-wrap gap-2">
+  <a class="btn btn-sm {% if not statut %}btn-dark{% else %}btn-outline-dark{% endif %}" href="{% url 'demandes:liste' %}">Toutes</a>
+  {% for code, libelle in statuts %}<a class="btn btn-sm {% if statut == code %}btn-dark{% else %}btn-outline-dark{% endif %}" href="?statut={{ code }}">{{ libelle }}</a>{% endfor %}
+</div>
+<div class="card"><div class="table-responsive"><table class="table table-hover align-middle mb-0">
+  <thead><tr><th>Type de document</th><th>Statut</th><th>Délai estimé</th><th>Créée le</th><th class="text-end">Actions</th></tr></thead>
+  <tbody>
+  {% for d in demandes %}
+    <tr>
+      <td><strong>{{ d.get_type_document_display }}</strong></td>
+      <td><span class="badge bg-{{ d.statut|couleur_statut }}">{{ d.get_statut_display }}</span>{% if d.en_retard %} <span class="badge bg-danger">En retard</span>{% endif %}</td>
+      <td>{{ d.delai_estime_heures }} h{% if d.statut == 'en_attente' or d.statut == 'en_cours' %}<br><small class="text-muted">avant le {{ d.date_prevue|date:"d/m/Y H:i" }}</small>{% endif %}</td>
+      <td>{{ d.date_creation|date:"d/m/Y H:i" }}</td>
+      <td class="text-end text-nowrap">
+        <a href="{% url 'demandes:detail' d.pk %}" class="btn btn-sm btn-outline-primary">Voir</a>
+        {% if d.modifiable %}
+          <a href="{% url 'demandes:modifier' d.pk %}" class="btn btn-sm btn-outline-secondary">Modifier</a>
+          <form method="post" action="{% url 'demandes:annuler' d.pk %}" class="d-inline" onsubmit="return confirm('Annuler cette demande ?');">{% csrf_token %}<button class="btn btn-sm btn-outline-danger">Annuler</button></form>
+        {% else %}<span class="text-muted small ms-1">Verrouillée</span>{% endif %}
+      </td>
+    </tr>
+  {% empty %}<tr><td colspan="5" class="text-center text-muted py-4">Aucune demande{% if statut %} avec ce statut{% endif %}.</td></tr>{% endfor %}
+  </tbody></table></div></div>
+{% endblock %}
