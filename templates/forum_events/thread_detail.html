@@ -1,0 +1,56 @@
+{% extends "forum_events/base.html" %}
+{% block title %}{{ thread.title }}{% endblock %}
+{% block content %}
+  <p><a href="{% url 'forum:thread-list' %}">← Back to threads</a></p>
+  <article class="card">
+    <span class="tag">{{ thread.get_kind_display }}</span>
+    <span class="tag">{{ thread.category }}</span>
+    {% if thread.is_locked %}<span class="tag">Locked</span>{% endif %}
+    <h1>{{ thread.title }}</h1>
+    <div class="meta">
+      {% if thread.author %}By <a href="{% url 'forum:profile' thread.author.username %}">{% if thread.author.is_superuser %}Admin{% else %}{{ thread.author }}{% endif %}</a> · {% endif %}
+      Posted {{ thread.created_at|date:"M j, Y, P" }}
+      {% if thread.updated_at != thread.created_at %} · Updated {{ thread.updated_at|date:"M j, Y, P" }}{% endif %}
+    </div>
+    {% if thread.kind == "event" %}
+      <p><strong>Starts:</strong> {{ thread.event_start|date:"M j, Y, P" }}
+        {% if thread.event_end %}<br><strong>Ends:</strong> {{ thread.event_end|date:"M j, Y, P" }}{% endif %}
+        {% if thread.location %}<br><strong>Location:</strong> {{ thread.location }}{% endif %}
+      </p>
+    {% endif %}
+    <p>{{ thread.content|linebreaksbr }}</p>
+    {% if user.is_staff %}
+      <div class="actions">
+        <a class="button secondary" href="{% url 'forum:thread-update' thread.pk %}">Edit</a>
+        <a class="button danger" href="{% url 'forum:thread-delete' thread.pk %}">Delete</a>
+        <form class="inline" method="post" action="{% url 'forum:thread-lock-toggle' thread.pk %}">
+          {% csrf_token %}
+          <button type="submit">{% if thread.is_locked %}Unlock thread{% else %}Lock thread{% endif %}</button>
+        </form>
+      </div>
+    {% endif %}
+  </article>
+
+  <h2 id="comments">Comments ({{ thread.comments.count }})</h2>
+  {% if thread.is_locked %}
+    <p>This thread is locked. New comments are disabled.</p>
+  {% elif user.is_authenticated %}
+    <div class="actions"><a class="button" href="{% url 'forum:comment-create' thread.pk %}">Add comment</a></div>
+  {% else %}
+    <p><a href="{% url 'login' %}">Log in</a> to add a comment.</p>
+  {% endif %}
+  {% for comment in thread.comments.all %}
+    <article class="card">
+      <div class="meta">{% if comment.author %}<a href="{% url 'forum:profile' comment.author.username %}">{% if comment.author.is_superuser %}Admin{% else %}{{ comment.author }}{% endif %}</a> · {% endif %}{{ comment.created_at|date:"M j, Y, P" }}</div>
+      <p>{{ comment.content|linebreaksbr }}</p>
+      {% if user.is_staff %}
+        <div class="actions">
+          <a class="button secondary" href="{% url 'forum:comment-update' comment.pk %}">Edit</a>
+          <a class="button danger" href="{% url 'forum:comment-delete' comment.pk %}">Delete</a>
+        </div>
+      {% endif %}
+    </article>
+  {% empty %}
+    <p>No comments yet.</p>
+  {% endfor %}
+{% endblock %}

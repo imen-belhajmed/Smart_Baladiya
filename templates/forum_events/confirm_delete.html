@@ -1,0 +1,17 @@
+{% extends "forum_events/base.html" %}
+{% block title %}Confirm deletion{% endblock %}
+{% block content %}
+  <h1>Confirm deletion</h1>
+  <section class="form-card">
+    <p>Are you sure you want to delete <strong>{{ object }}</strong>?
+      {% if object.comments.exists %} Its comments will also be deleted.{% endif %}
+    </p>
+    <form method="post">
+      {% csrf_token %}
+      <div class="actions">
+        <button class="danger" type="submit">Delete</button>
+        <a class="button secondary" href="{{ cancel_url }}">Cancel</a>
+      </div>
+    </form>
+  </section>
+{% endblock %}

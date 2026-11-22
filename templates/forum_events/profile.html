@@ -1,0 +1,39 @@
+{% extends "forum_events/base.html" %}
+{% block title %}{% if profile.is_superuser %}Admin{% else %}{{ profile.username }}{% endif %}{% endblock %}
+{% block content %}
+  <h1>{% if profile.is_superuser %}Admin{% else %}{{ profile.username }}{% endif %}</h1>
+  <p>Member since {{ profile.date_joined|date:"M j, Y" }}</p>
+  {% if member_profile.image %}
+    <p><img src="{{ member_profile.image.url }}" alt="Profile picture for {% if profile.is_superuser %}Admin{% else %}{{ profile.username }}{% endif %}" width="160"></p>
+  {% else %}
+    <p>No profile picture uploaded.</p>
+  {% endif %}
+  {% if user.is_authenticated %}
+    {% if user.pk == profile.pk %}
+      <p><a href="{% url 'forum:profile-edit' profile.username %}">Edit profile picture</a></p>
+    {% endif %}
+  {% endif %}
+  <p>{{ profile_threads.count }} thread{{ profile_threads.count|pluralize }} · {{ profile_comments.count }} comment{{ profile_comments.count|pluralize }}</p>
+
+  <section>
+    <h2>Threads</h2>
+    {% for thread in profile_threads %}
+      {% include "forum_events/_thread_card.html" %}
+    {% empty %}
+      <p>This member has not created any threads.</p>
+    {% endfor %}
+  </section>
+
+  <section>
+    <h2>Comments</h2>
+    {% for comment in profile_comments %}
+      <article class="card">
+        <p>On <a href="{% url 'forum:thread-detail' comment.thread.pk %}">{{ comment.thread.title }}</a></p>
+        <p>{{ comment.content|linebreaksbr }}</p>
+        <div class="meta">{{ comment.created_at|date:"M j, Y, P" }}</div>
+      </article>
+    {% empty %}
+      <p>This member has not commented yet.</p>
+    {% endfor %}
+  </section>
+{% endblock %}

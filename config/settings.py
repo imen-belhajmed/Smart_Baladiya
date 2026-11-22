@@ -22,7 +22,7 @@ INSTALLED_APPS = [
     'demandes', # Module 1
     # 'marches',   # Module 2 - Molka
     'incidents', # Module 3 - Zaineb
-    # 'forum',     # Module 4 - Nour
+    'Forum_Events', # Module 4 - Nour
     'actualites',# Module 5 - Ribel
     # 'dechets',   # Module 6 - Mahmoud
 ]
