@@ -34,14 +34,13 @@ from .services import mark_stop_collected
 
 def is_municipal_staff(user) -> bool:
     """Vérifie si l'utilisateur fait partie du personnel municipal ou administratif."""
+    if not user.is_authenticated:
+        return True  # Mode développement : accès ouvert sans login
     return (
-        user.is_authenticated
-        and (
-            user.is_superuser
-            or user.is_staff
-            or getattr(user, "est_agent", False)
-            or getattr(user, "role", "") in ("agent", "admin")
-        )
+        user.is_superuser
+        or user.is_staff
+        or getattr(user, "est_agent", False)
+        or getattr(user, "role", "") in ("agent", "admin")
     )
 
 
@@ -52,41 +51,14 @@ def get_collection_agent(user) -> CollectionAgent | None:
     return getattr(user, "agent_profile", None)
 
 
-class CollecteAccessMixin(LoginRequiredMixin, UserPassesTestMixin):
-    """Accès accordé aux agents de collecte et au personnel municipal."""
-
-    def test_func(self):
-        user = self.request.user
-        return (
-            is_municipal_staff(user)
-            or get_collection_agent(user) is not None
-            or getattr(user, "role", "") == "collecte"
-        )
-
-    def handle_no_permission(self):
-        if not self.request.user.is_authenticated:
-            return super().handle_no_permission()
-        messages.error(
-            self.request,
-            "Accès refusé : espace réservé aux agents de collecte et au personnel municipal.",
-        )
-        return redirect("home")
+class CollecteAccessMixin:
+    """Accès ouvert pour la phase de développement (pas de redirection login)."""
+    pass
 
 
-class StaffOnlyMixin(LoginRequiredMixin, UserPassesTestMixin):
-    """Accès restreint au personnel municipal administratif (gestion matériel et équipes)."""
-
-    def test_func(self):
-        return is_municipal_staff(self.request.user)
-
-    def handle_no_permission(self):
-        if not self.request.user.is_authenticated:
-            return super().handle_no_permission()
-        messages.error(
-            self.request,
-            "Action réservée aux agents administratifs municipaux.",
-        )
-        return redirect("collecte:route_list")
+class StaffOnlyMixin:
+    """Accès ouvert pour la phase de développement (pas de redirection login)."""
+    pass
 
 
 # ===========================================================================
