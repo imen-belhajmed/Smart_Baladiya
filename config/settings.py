@@ -24,7 +24,7 @@ INSTALLED_APPS = [
     'incidents', # Module 3 - Zaineb
     # 'forum',     # Module 4 - Nour
     'actualites',# Module 5 - Ribel
-    # 'dechets',   # Module 6 - Mahmoud
+    'agent_collect', # Module 6 - Mahmoud (Ressources & Collecte des Déchets)
 ]
 
 MIDDLEWARE = [

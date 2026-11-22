@@ -14,7 +14,7 @@ urlpatterns = [
     path('incidents/', include('incidents.urls')), # Module 3 - Zaineb
     # path('forum/', include('forum.urls')),     # Module 4 - Nour
     path('actualites/', include('actualites.urls')), # Module 5 - Ribel
-    # path('dechets/', include('dechets.urls')),   # Module 6 - Mahmoud
+    path('collecte/', include('agent_collect.urls')), # Module 6 - Mahmoud (Collecte)
 ]
 
 if settings.DEBUG:
