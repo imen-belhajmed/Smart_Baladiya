@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 650px;">
+  <h1 class="h3 mb-3">Modifier {{ commercant.prenom }} {{ commercant.nom }}</h1>
+
+  <form method="post" class="card card-body">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <div class="d-flex justify-content-end gap-2 mt-3">
+      <a href="{% url 'marches:detail_commercant' commercant.pk %}" class="btn btn-secondary">Annuler</a>
+      <button type="submit" class="btn btn-primary">Enregistrer</button>
+    </div>
+  </form>
+</div>
+{% endblock %}
