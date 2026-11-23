@@ -59,6 +59,16 @@
 </form>
 
 {% if emplacements %}
+    {% if numero_recherche or zone_choisie or activite_recherche or statut_choisi %}
+            <p>
+                Filtres actifs :
+                {% if numero_recherche %}<strong>Numéro :</strong> {{ numero_recherche }} — {% endif %}
+                {% if zone_choisie %}<strong>Zone :</strong> {{ zone_choisie }} — {% endif %}
+                {% if activite_recherche %}<strong>Activité :</strong> {{ activite_recherche }} — {% endif %}
+                {% if statut_choisi %}<strong>Statut :</strong> {{ statut_choisi }}{% endif %}
+            </p>
+        {% endif %}
+
     <table>
         <thead>
             <tr>
@@ -75,7 +85,17 @@
                     <td>{{ e.numero }}</td>
                     <td>{{ e.zone }}</td>
                     <td>{{ e.activite }}</td>
-                    <td>{{ e.get_statut_display }}</td>
+                    <td>
+                        {% if e.statut == 'libre' %}
+                            <span style="padding: 2px 8px; border-radius: 12px; background: #e6f4ea; color: #137333; font-weight: 600;">
+                                {{ e.get_statut_display }}
+                            </span>
+                        {% else %}
+                            <span style="padding: 2px 8px; border-radius: 12px; background: #fce8e6; color: #c5221f; font-weight: 600;">
+                                {{ e.get_statut_display }}
+                            </span>
+                        {% endif %}
+                    </td>
                     <td>
                         <a href="{% url 'marches:detail_emplacement' e.pk %}">Détails</a> |
                         <a href="{% url 'marches:modifier_emplacement' e.pk %}">Modifier</a> |

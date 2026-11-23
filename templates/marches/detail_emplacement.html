@@ -18,7 +18,18 @@
         <li><strong>Numéro :</strong> {{ emplacement.numero }}</li>
         <li><strong>Zone :</strong> {{ emplacement.zone }}</li>
         <li><strong>Type d'activité :</strong> {{ emplacement.activite }}</li>
-        <li><strong>Statut :</strong> {{ emplacement.get_statut_display }}</li>
+        <li>
+            <strong>Statut :</strong>
+            {% if emplacement.statut == 'libre' %}
+                <span style="padding: 2px 8px; border-radius: 12px; background: #e6f4ea; color: #137333; font-weight: 600;">
+                    {{ emplacement.get_statut_display }}
+                </span>
+            {% else %}
+                <span style="padding: 2px 8px; border-radius: 12px; background: #fce8e6; color: #c5221f; font-weight: 600;">
+                    {{ emplacement.get_statut_display }}
+                </span>
+            {% endif %}
+        </li>       
         <li><strong>Latitude :</strong> {{ emplacement.latitude|default:"Non renseignée" }}</li>
         <li><strong>Longitude :</strong> {{ emplacement.longitude|default:"Non renseignée" }}</li>
     </ul>
