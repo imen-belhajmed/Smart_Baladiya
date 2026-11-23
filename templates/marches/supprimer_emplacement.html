@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block title %}Supprimer l'emplacement {{ emplacement.numero }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Supprimer l'emplacement {{ emplacement.numero }}</h1>
+
+    <p>
+        Confirmez-vous la suppression de l'étal <strong>{{ emplacement.numero }}</strong>
+        ({{ emplacement.zone }} — {{ emplacement.activite }}) ?
+    </p>
+
+    <form method="POST">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">Confirmer la suppression</button>
+        <a href="{% url 'marches:detail_emplacement' emplacement.pk %}" class="btn btn-secondary">
+            Annuler
+        </a>
+    </form>
+</div>
+{% endblock %}
