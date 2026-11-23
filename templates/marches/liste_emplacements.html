@@ -5,6 +5,15 @@
 {% block content %}
 <h1>Étals et emplacements</h1>
 
+<div class="actions">
+
+    <a href="{% url 'marches:ajouter_emplacement' %}"
+       class="btn btn-primary">
+        + Ajouter un emplacement
+    </a>
+
+</div>
+
 <form method="get">
     <label for="zone">Zone</label>
     <select name="zone" id="zone">

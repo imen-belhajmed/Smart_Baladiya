@@ -2,6 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 
 from .models import Emplacement
+from .forms import EmplacementForm
 
 
 @login_required
@@ -29,3 +30,25 @@ def liste_emplacements(request):
         'statut_choisi': statut,
         'statuts': Emplacement.Statut.choices,
     })
+
+
+@login_required
+def ajouter_emplacement(request):
+
+    if request.method == 'POST':
+
+        form = EmplacementForm(request.POST)
+
+        if form.is_valid():
+            form.save()
+
+            return redirect('marches:list')
+
+    else:
+        form = EmplacementForm()
+
+    return render(
+        request,
+        'marches/ajouter_emplacement.html',
+        {'form': form}
+    )
