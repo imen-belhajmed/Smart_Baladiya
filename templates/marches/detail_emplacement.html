@@ -61,12 +61,14 @@
     {% endif %}
 
     <div class="actions">
-        <a href="{% url 'marches:modifier_emplacement' emplacement.pk %}" class="btn btn-primary">
-            Modifier
-        </a>
-        <a href="{% url 'marches:supprimer_emplacement' emplacement.pk %}" class="btn btn-secondary">
-            Supprimer
-        </a>
+        {% if request.user.est_agent %}
+            <a href="{% url 'marches:modifier_emplacement' emplacement.pk %}" class="btn btn-primary">
+                Modifier
+            </a>
+            <a href="{% url 'marches:supprimer_emplacement' emplacement.pk %}" class="btn btn-secondary">
+                Supprimer
+            </a>
+        {% endif %}
         <a href="{% url 'marches:list' %}" class="btn btn-secondary">
             Retour à la liste
         </a>
