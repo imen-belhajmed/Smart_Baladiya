@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Accepter la demande{% endblock %}
+
+{% block content %}
+{% include "marches/_nav_marches.html" %}
+
+<h1>Accepter la demande et générer le permis</h1>
+
+<div style="margin-bottom:1.5rem; padding:1rem; border:1px solid #cbd5e1; border-radius:6px;">
+    <p><strong>Commerçant :</strong> {{ demande.commercant }} (CIN : {{ demande.commercant.cin }})</p>
+    <p><strong>Zone souhaitée :</strong> {{ demande.zone_souhaitee }}</p>
+    <p><strong>Activité :</strong> {{ demande.activite }}</p>
+    <p><strong>Durée demandée :</strong> {{ demande.duree_jours }} jours à partir du {{ demande.date_debut_souhaitee|date:"d/m/Y" }}</p>
+    {% if demande.commentaire %}
+        <p><strong>Commentaire :</strong> {{ demande.commentaire }}</p>
+    {% endif %}
+</div>
+
+<form method="post">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+        <div class="errorlist">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <p>
+        {{ form.emplacement.label_tag }}
+        {{ form.emplacement }}
+        {{ form.emplacement.errors }}
+        <small>Seuls les emplacements actuellement libres sont affichés.</small>
+    </p>
+    <p>
+        {{ form.date_debut.label_tag }}
+        {{ form.date_debut }}
+        {{ form.date_debut.errors }}
+    </p>
+    <p>
+        {{ form.date_fin.label_tag }}
+        {{ form.date_fin }}
+        {{ form.date_fin.errors }}
+    </p>
+
+    <button type="submit" class="btn">Confirmer et délivrer le permis</button>
+    <a href="{% url 'marches:liste_demandes_permis' %}" class="btn btn-petit">Annuler</a>
+</form>
+{% endblock %}

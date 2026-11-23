@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Demander un permis de marché{% endblock %}
+
+{% block content %}
+{% include "marches/_nav_marches.html" %}
+
+<h1>Soumettre une demande de permis</h1>
+<p>Remplissez vos informations de commerçant et les détails de l'emplacement souhaité.</p>
+
+<form method="post">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+        <div class="errorlist">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <fieldset style="margin-bottom:1.5rem; padding:1rem; border:1px solid #cbd5e1; border-radius:6px;">
+        <legend><strong>Informations du commerçant</strong></legend>
+        <p>
+            {{ form.nom.label_tag }}
+            {{ form.nom }}
+            {{ form.nom.errors }}
+        </p>
+        <p>
+            {{ form.prenom.label_tag }}
+            {{ form.prenom }}
+            {{ form.prenom.errors }}
+        </p>
+        <p>
+            {{ form.cin.label_tag }}
+            {{ form.cin }}
+            {{ form.cin.errors }}
+        </p>
+        <p>
+            {{ form.telephone.label_tag }}
+            {{ form.telephone }}
+            {{ form.telephone.errors }}
+        </p>
+    </fieldset>
+
+    <fieldset style="margin-bottom:1.5rem; padding:1rem; border:1px solid #cbd5e1; border-radius:6px;">
+        <legend><strong>Détails de la demande</strong></legend>
+        <p>
+            {{ form.zone_souhaitee.label_tag }}
+            {{ form.zone_souhaitee }}
+            {{ form.zone_souhaitee.errors }}
+        </p>
+        <p>
+            {{ form.activite.label_tag }}
+            {{ form.activite }}
+            {{ form.activite.errors }}
+        </p>
+        <p>
+            {{ form.date_debut_souhaitee.label_tag }}
+            {{ form.date_debut_souhaitee }}
+            {{ form.date_debut_souhaitee.errors }}
+        </p>
+        <p>
+            {{ form.duree_jours.label_tag }}
+            {{ form.duree_jours }}
+            {{ form.duree_jours.errors }}
+        </p>
+        <p>
+            {{ form.commentaire.label_tag }}
+            {{ form.commentaire }}
+            {{ form.commentaire.errors }}
+        </p>
+    </fieldset>
+
+    <button type="submit" class="btn">Envoyer ma demande</button>
+    <a href="{% url 'marches:mes_demandes' %}" class="btn btn-petit">Annuler</a>
+</form>
+{% endblock %}

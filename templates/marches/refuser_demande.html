@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Refuser la demande{% endblock %}
+
+{% block content %}
+{% include "marches/_nav_marches.html" %}
+
+<h1>Refuser la demande de permis</h1>
+
+<p><strong>Commerçant :</strong> {{ demande.commercant }} — <strong>Zone :</strong> {{ demande.zone_souhaitee }}</p>
+
+<form method="post">
+    {% csrf_token %}
+    <p>
+        {{ form.motif_refus.label_tag }}
+        {{ form.motif_refus }}
+        {{ form.motif_refus.errors }}
+    </p>
+
+    <button type="submit" class="btn">Confirmer le refus</button>
+    <a href="{% url 'marches:liste_demandes_permis' %}" class="btn btn-petit">Annuler</a>
+</form>
+{% endblock %}

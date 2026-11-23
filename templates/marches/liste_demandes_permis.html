@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Demandes de permis{% endblock %}
+
+{% block content %}
+{% include "marches/_nav_marches.html" %}
+
+<h1>Gestion des demandes de permis</h1>
+
+<form method="get" style="margin-bottom:1.25rem; display:flex; gap:0.5rem; align-items:center;">
+    <label for="statut">Filtrer par statut :</label>
+    <select name="statut" id="statut" class="form-control" style="max-width:220px;">
+        <option value="">Toutes les demandes</option>
+        {% for val, label in statuts %}
+            <option value="{{ val }}" {% if statut_choisi == val %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-petit">Filtrer</button>
+</form>
+
+{% if demandes %}
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Commerçant</th>
+                <th>CIN</th>
+                <th>Zone souhaitée</th>
+                <th>Activité</th>
+                <th>Début / Durée</th>
+                <th>Statut</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for d in demandes %}
+                <tr>
+                    <td>{{ d.date_creation|date:"d/m/Y" }}</td>
+                    <td>
+                        <a href="{% url 'marches:detail_commercant' d.commercant.pk %}">{{ d.commercant }}</a>
+                    </td>
+                    <td>{{ d.commercant.cin }}</td>
+                    <td>{{ d.zone_souhaitee }}</td>
+                    <td>{{ d.activite }}</td>
+                    <td>{{ d.date_debut_souhaitee|date:"d/m/Y" }} ({{ d.duree_jours }} j)</td>
+                    <td><strong>{{ d.get_statut_display }}</strong></td>
+                    <td>
+                        {% if d.statut == 'en_attente' %}
+                            <a href="{% url 'marches:accepter_demande' d.pk %}" class="btn btn-petit">Accepter</a>
+                            <a href="{% url 'marches:refuser_demande' d.pk %}" class="btn btn-petit">Refuser</a>
+                        {% else %}
+                            <span>{{ d.motif_refus|default:"Traitée" }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>Aucune demande de permis trouvée.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Créer un permis{% endblock %}
+
+{% block content %}
+{% include "marches/_nav_marches.html" %}
+
+<h1>Créer un permis directement</h1>
+
+<form method="post">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+        <div class="errorlist">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    {{ form.as_p }}
+
+    <button type="submit" class="btn">Enregistrer le permis</button>
+    <a href="{% url 'marches:liste_permis' %}" class="btn btn-petit">Annuler</a>
+</form>
+{% endblock %}

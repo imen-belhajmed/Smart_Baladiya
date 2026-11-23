@@ -1,0 +1,13 @@
+<div style="display:flex; flex-wrap:wrap; gap:0.5rem; align-items:center; justify-content:space-between; margin-bottom:1.5rem; padding-bottom:0.75rem; border-bottom:1px solid #e2e8f0;">
+    <div style="display:flex; flex-wrap:wrap; gap:0.5rem;">
+        <a href="{% url 'marches:list' %}" class="btn btn-petit">Emplacements</a>
+        {% if request.user.est_agent %}
+            <a href="{% url 'marches:liste_commercants' %}" class="btn btn-petit">Commerçants</a>
+            <a href="{% url 'marches:liste_demandes_permis' %}" class="btn btn-petit">Demandes de permis</a>
+            <a href="{% url 'marches:liste_permis' %}" class="btn btn-petit">Permis délivrés</a>
+        {% else %}
+            <a href="{% url 'marches:mes_demandes' %}" class="btn btn-petit">Mes demandes & Permis</a>
+            <a href="{% url 'marches:soumettre_demande' %}" class="btn btn-petit">+ Demander un permis</a>
+        {% endif %}
+    </div>
+</div>

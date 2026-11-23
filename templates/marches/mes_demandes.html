@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Mes demandes et permis{% endblock %}
+
+{% block content %}
+{% include "marches/_nav_marches.html" %}
+
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+    <h1>Mon espace Marchés</h1>
+    <a href="{% url 'marches:soumettre_demande' %}" class="btn">+ Nouvelle demande de permis</a>
+</div>
+
+{% if notifications %}
+    <h2>Notifications récentes</h2>
+    <ul style="margin-bottom:1.5rem;">
+        {% for notif in notifications %}
+            <li>
+                <strong>{{ notif.date_creation|date:"d/m/Y H:i" }} :</strong> {{ notif.message }}
+                {% if notif.permis %}
+                    — <a href="{% url 'marches:detail_permis' notif.permis.pk %}">Voir le permis</a>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+<h2>Mes permis d'occupation</h2>
+{% if mes_permis %}
+    <table>
+        <thead>
+            <tr>
+                <th>Emplacement</th>
+                <th>Période</th>
+                <th>Statut</th>
+                <th>Code permis</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in mes_permis %}
+                <tr>
+                    <td>{{ p.emplacement }}</td>
+                    <td>Du {{ p.date_debut|date:"d/m/Y" }} au {{ p.date_fin|date:"d/m/Y" }}</td>
+                    <td>{{ p.get_statut_display }}</td>
+                    <td><code>{{ p.code|truncatechars:14 }}</code></td>
+                    <td>
+                        <a href="{% url 'marches:detail_permis' p.pk %}" class="btn btn-petit">Détails / QR</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>Vous n'avez aucun permis attribué pour le moment.</p>
+{% endif %}
+
+<h2 style="margin-top:2rem;">Mes demandes soumises</h2>
+{% if demandes %}
+    <table>
+        <thead>
+            <tr>
+                <th>Date demande</th>
+                <th>Zone souhaitée</th>
+                <th>Activité</th>
+                <th>Début souhaité</th>
+                <th>Durée</th>
+                <th>Statut</th>
+                <th>Motif (si refusée)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for d in demandes %}
+                <tr>
+                    <td>{{ d.date_creation|date:"d/m/Y" }}</td>
+                    <td>{{ d.zone_souhaitee }}</td>
+                    <td>{{ d.activite }}</td>
+                    <td>{{ d.date_debut_souhaitee|date:"d/m/Y" }}</td>
+                    <td>{{ d.duree_jours }} jours</td>
+                    <td><strong>{{ d.get_statut_display }}</strong></td>
+                    <td>{{ d.motif_refus|default:"—" }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>Vous n'avez soumis aucune demande de permis.</p>
+{% endif %}
+{% endblock %}

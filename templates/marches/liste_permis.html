@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Liste des permis{% endblock %}
+
+{% block content %}
+{% include "marches/_nav_marches.html" %}
+
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+    <h1>Permis d'occupation des marchés</h1>
+    <a href="{% url 'marches:creer_permis' %}" class="btn">+ Créer un permis directement</a>
+</div>
+
+<form method="get" style="margin-bottom:1.25rem; display:flex; gap:0.5rem; align-items:center;">
+    <label for="statut">Statut :</label>
+    <select name="statut" id="statut" class="form-control" style="max-width:220px;">
+        <option value="">Tous</option>
+        {% for val, label in statuts %}
+            <option value="{{ val }}" {% if statut_choisi == val %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-petit">Filtrer</button>
+</form>
+
+{% if permis_list %}
+    <table>
+        <thead>
+            <tr>
+                <th>Commerçant</th>
+                <th>Emplacement</th>
+                <th>Date début</th>
+                <th>Date fin</th>
+                <th>Statut</th>
+                <th>Validité</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in permis_list %}
+                <tr>
+                    <td><a href="{% url 'marches:detail_commercant' p.commercant.pk %}">{{ p.commercant }}</a></td>
+                    <td><a href="{% url 'marches:detail_emplacement' p.emplacement.pk %}">{{ p.emplacement }}</a></td>
+                    <td>{{ p.date_debut|date:"d/m/Y" }}</td>
+                    <td>{{ p.date_fin|date:"d/m/Y" }}</td>
+                    <td>{{ p.get_statut_display }}</td>
+                    <td>{% if p.est_valide %}Valide{% else %}Invalide / Hors période{% endif %}</td>
+                    <td><a href="{% url 'marches:detail_permis' p.pk %}" class="btn btn-petit">Détails</a></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>Aucun permis enregistré.</p>
+{% endif %}
+{% endblock %}
