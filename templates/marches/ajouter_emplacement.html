@@ -1,0 +1,64 @@
+
+{% extends 'base.html' %}
+
+{% block title %}Ajouter un emplacement{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <h1>Ajouter un emplacement</h1>
+
+    <p>
+        Veuillez remplir les informations
+        concernant le nouvel étal.
+    </p>
+
+    <form method="POST">
+
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="error">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        {% for field in form %}
+
+            <div class="form-group">
+
+                <label for="{{ field.id_for_label }}">
+                    {{ field.label }}
+                </label>
+
+                {{ field }}
+
+                {% if field.errors %}
+                    <div class="error">
+                        {{ field.errors }}
+                    </div>
+                {% endif %}
+
+                {% if field.help_text %}
+                    <small>{{ field.help_text }}</small>
+                {% endif %}
+
+            </div>
+
+        {% endfor %}
+
+        <button type="submit" class="btn btn-primary">
+            Enregistrer l'emplacement
+        </button>
+
+        <a href="{% url 'marches:list' %}"
+           class="btn btn-secondary">
+            Annuler
+        </a>
+
+    </form>
+
+</div>
+
+{% endblock %}

@@ -13,7 +13,7 @@ urlpatterns = [
     path('comptes/', include('accounts.urls')),
     # ===== Modules (chaque membre décommente SA ligne) =====
     path('demandes/', include('demandes.urls')), # Module 1
-    # path('marches/', include('marches.urls')),   # Module 2 - Molka
+    path('marches/', include('marches.urls')),   # Module 2 - Molka
     path('incidents/', include('incidents.urls')), # Module 3 - Zaineb
     path('forum/', include('Forum_Events.urls')), # Module 4 - Nour
     path('accounts/login/', auth_views.LoginView.as_view(
