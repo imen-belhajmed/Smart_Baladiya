@@ -13,14 +13,17 @@
     </div>
 {% endif %}
 
-<div class="actions">
-    <a href="{% url 'marches:liste_commercants' %}" class="btn btn-secondary">
-        Voir les commerçants
-    </a>
-    <a href="{% url 'marches:ajouter_emplacement' %}" class="btn btn-primary">
-        + Ajouter un emplacement
-    </a>
-</div>
+{% if request.user.est_agent %}
+    <div class="actions">
+        <a href="{% url 'marches:liste_commercants' %}" class="btn btn-secondary">
+            Voir les commerçants
+        </a>
+        <a href="{% url 'marches:ajouter_emplacement' %}" class="btn btn-primary">
+            + Ajouter un emplacement
+        </a>
+    </div>
+{% endif %}
+
 <form method="get">
     <label for="numero">Numéro</label>
     <input
@@ -62,14 +65,14 @@
 
 {% if emplacements %}
     {% if numero_recherche or zone_choisie or activite_recherche or statut_choisi %}
-            <p>
-                Filtres actifs :
-                {% if numero_recherche %}<strong>Numéro :</strong> {{ numero_recherche }} — {% endif %}
-                {% if zone_choisie %}<strong>Zone :</strong> {{ zone_choisie }} — {% endif %}
-                {% if activite_recherche %}<strong>Activité :</strong> {{ activite_recherche }} — {% endif %}
-                {% if statut_choisi %}<strong>Statut :</strong> {{ statut_choisi }}{% endif %}
-            </p>
-        {% endif %}
+        <p>
+            Filtres actifs :
+            {% if numero_recherche %}<strong>Numéro :</strong> {{ numero_recherche }} — {% endif %}
+            {% if zone_choisie %}<strong>Zone :</strong> {{ zone_choisie }} — {% endif %}
+            {% if activite_recherche %}<strong>Activité :</strong> {{ activite_recherche }} — {% endif %}
+            {% if statut_choisi %}<strong>Statut :</strong> {{ statut_choisi }}{% endif %}
+        </p>
+    {% endif %}
 
     <table>
         <thead>
@@ -99,9 +102,11 @@
                         {% endif %}
                     </td>
                     <td>
-                        <a href="{% url 'marches:detail_emplacement' e.pk %}">Détails</a> |
-                        <a href="{% url 'marches:modifier_emplacement' e.pk %}">Modifier</a> |
-                        <a href="{% url 'marches:supprimer_emplacement' e.pk %}">Supprimer</a>
+                        <a href="{% url 'marches:detail_emplacement' e.pk %}">Détails</a>
+                        {% if request.user.est_agent %}
+                            | <a href="{% url 'marches:modifier_emplacement' e.pk %}">Modifier</a>
+                            | <a href="{% url 'marches:supprimer_emplacement' e.pk %}">Supprimer</a>
+                        {% endif %}
                     </td>
                 </tr>
             {% endfor %}

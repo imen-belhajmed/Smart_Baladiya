@@ -1,11 +1,31 @@
+from functools import wraps
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import ProtectedError
+from django.db.models import ProtectedError, Q
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import CommercantForm, EmplacementForm
 from .models import Commercant, Emplacement
 
+
+def agent_requis(view_func):
+    @wraps(view_func)
+    @login_required
+    def _wrapped_view(request, *args, **kwargs):
+        if not getattr(request.user, 'est_agent', False):
+            messages.error(
+                request,
+                "Action réservée aux agents municipaux ou administrateurs.",
+            )
+            return redirect('marches:list')
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
+
+
+# ==========================================
+# EMPLACEMENTS (Consultation : Tous | Gestion : Agent/Admin)
+# ==========================================
 
 @login_required
 def liste_emplacements(request):
@@ -53,7 +73,7 @@ def detail_emplacement(request, pk):
     })
 
 
-@login_required
+@agent_requis
 def ajouter_emplacement(request):
     if request.method == 'POST':
         form = EmplacementForm(request.POST)
@@ -71,7 +91,7 @@ def ajouter_emplacement(request):
     )
 
 
-@login_required
+@agent_requis
 def modifier_emplacement(request, pk):
     emplacement = get_object_or_404(Emplacement, pk=pk)
     if request.method == 'POST':
@@ -90,7 +110,7 @@ def modifier_emplacement(request, pk):
     )
 
 
-@login_required
+@agent_requis
 def supprimer_emplacement(request, pk):
     emplacement = get_object_or_404(Emplacement, pk=pk)
     if request.method == 'POST':
@@ -112,11 +132,11 @@ def supprimer_emplacement(request, pk):
     )
 
 
-@login_required
-def liste_demandes_permis(request):
-    return render(request, 'marches/liste_demandes_permis.html', {})
+# ==========================================
+# COMMERCANTS (Réservé aux Agents/Admins)
+# ==========================================
 
-@login_required
+@agent_requis
 def liste_commercants(request):
     commercants = Commercant.objects.all()
 
@@ -153,7 +173,7 @@ def liste_commercants(request):
     })
 
 
-@login_required
+@agent_requis
 def detail_commercant(request, pk):
     commercant = get_object_or_404(Commercant, pk=pk)
     permis_lies = commercant.permis.select_related('emplacement').all()
@@ -166,7 +186,7 @@ def detail_commercant(request, pk):
     })
 
 
-@login_required
+@agent_requis
 def ajouter_commercant(request):
     if request.method == 'POST':
         form = CommercantForm(request.POST)
@@ -184,7 +204,7 @@ def ajouter_commercant(request):
     )
 
 
-@login_required
+@agent_requis
 def modifier_commercant(request, pk):
     commercant = get_object_or_404(Commercant, pk=pk)
     if request.method == 'POST':
@@ -203,7 +223,7 @@ def modifier_commercant(request, pk):
     )
 
 
-@login_required
+@agent_requis
 def supprimer_commercant(request, pk):
     commercant = get_object_or_404(Commercant, pk=pk)
     if request.method == 'POST':
@@ -223,3 +243,12 @@ def supprimer_commercant(request, pk):
         'marches/supprimer_commercant.html',
         {'commercant': commercant},
     )
+
+
+# ==========================================
+# PERMIS & DEMANDES (En attente du Bloc 4)
+# ==========================================
+
+@login_required
+def liste_demandes_permis(request):
+    return render(request, 'marches/liste_demandes_permis.html', {})

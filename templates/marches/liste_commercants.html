@@ -9,7 +9,9 @@
     </div>
     <div class="actions">
       <a href="{% url 'marches:list' %}" class="btn btn-secondary">Voir les emplacements</a>
-      <a href="{% url 'marches:ajouter_commercant' %}" class="btn btn-primary">+ Ajouter un commerçant</a>
+      {% if request.user.est_agent %}
+        <a href="{% url 'marches:ajouter_commercant' %}" class="btn btn-primary">+ Ajouter un commerçant</a>
+      {% endif %}
     </div>
   </div>
 
@@ -73,9 +75,11 @@
                 {% endif %}
               </td>
               <td class="text-end">
-                <a href="{% url 'marches:detail_commercant' commercant.pk %}">Détails</a> |
-                <a href="{% url 'marches:modifier_commercant' commercant.pk %}">Modifier</a> |
-                <a href="{% url 'marches:supprimer_commercant' commercant.pk %}">Supprimer</a>
+                <a href="{% url 'marches:detail_commercant' commercant.pk %}">Détails</a>
+                {% if request.user.est_agent %}
+                  | <a href="{% url 'marches:modifier_commercant' commercant.pk %}">Modifier</a>
+                  | <a href="{% url 'marches:supprimer_commercant' commercant.pk %}">Supprimer</a>
+                {% endif %}
               </td>
             </tr>
           {% empty %}
