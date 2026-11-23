@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Commercant, Emplacement, Notification, Permis
+from .models import Commercant, DemandePermis, Emplacement, Notification, Permis
 
 
 @admin.register(Commercant)
@@ -23,5 +23,11 @@ class PermisAdmin(admin.ModelAdmin):
 
     search_fields = ('commercant__nom', 'commercant__prenom', 'emplacement__numero')
 
+@admin.register(DemandePermis)
+class DemandePermisAdmin(admin.ModelAdmin):
+    list_display = ('commercant', 'zone_souhaitee', 'activite', 'date_debut_souhaitee', 'statut')
+    list_filter = ('statut',)
+    search_fields = ('commercant__nom', 'commercant__prenom', 'commercant__cin')
 
 admin.site.register(Notification)
+

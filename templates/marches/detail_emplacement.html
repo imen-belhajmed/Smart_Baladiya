@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}Détails étal {{ emplacement.numero }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Étal {{ emplacement.numero }} — {{ emplacement.zone }}</h1>
+
+    {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="alert {{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <ul>
+        <li><strong>Numéro :</strong> {{ emplacement.numero }}</li>
+        <li><strong>Zone :</strong> {{ emplacement.zone }}</li>
+        <li><strong>Type d'activité :</strong> {{ emplacement.activite }}</li>
+        <li><strong>Statut :</strong> {{ emplacement.get_statut_display }}</li>
+        <li><strong>Latitude :</strong> {{ emplacement.latitude|default:"Non renseignée" }}</li>
+        <li><strong>Longitude :</strong> {{ emplacement.longitude|default:"Non renseignée" }}</li>
+    </ul>
+
+    <h2>Permis associés</h2>
+    {% if permis_lies %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Commerçant</th>
+                    <th>Date début</th>
+                    <th>Date fin</th>
+                    <th>Statut</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in permis_lies %}
+                    <tr>
+                        <td>{{ p.commercant }}</td>
+                        <td>{{ p.date_debut }}</td>
+                        <td>{{ p.date_fin }}</td>
+                        <td>{{ p.get_statut_display }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>Aucun permis enregistré pour cet emplacement.</p>
+    {% endif %}
+
+    <div class="actions">
+        <a href="{% url 'marches:modifier_emplacement' emplacement.pk %}" class="btn btn-primary">
+            Modifier
+        </a>
+        <a href="{% url 'marches:supprimer_emplacement' emplacement.pk %}" class="btn btn-secondary">
+            Supprimer
+        </a>
+        <a href="{% url 'marches:list' %}" class="btn btn-secondary">
+            Retour à la liste
+        </a>
+    </div>
+</div>
+{% endblock %}

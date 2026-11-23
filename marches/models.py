@@ -19,6 +19,7 @@ class Commercant(models.Model):
     cin = models.CharField("CIN", max_length=8, unique=True)
     telephone = models.CharField(max_length=15, blank=True)
     activite = models.CharField("Type d'activité", max_length=100)
+    actif = models.BooleanField("Actif", default=True)
 
     class Meta:
         ordering = ['nom', 'prenom']
@@ -141,3 +142,29 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"{self.destinataire} : {self.message[:40]}"
+    
+class DemandePermis(models.Model):
+    class Statut(models.TextChoices):
+        EN_ATTENTE = 'en_attente', 'En attente'
+        ACCEPTEE = 'acceptee', 'Acceptée'
+        REFUSEE = 'refusee', 'Refusée'
+
+    commercant = models.ForeignKey(
+        Commercant, on_delete=models.CASCADE, related_name='demandes_permis'
+    )
+    zone_souhaitee = models.CharField("Zone souhaitée", max_length=100)
+    activite = models.CharField("Type d'activité", max_length=100)
+    date_debut_souhaitee = models.DateField("Date de début souhaitée")
+    duree_jours = models.PositiveIntegerField("Durée souhaitée (jours)", default=30)
+    commentaire = models.TextField("Commentaire", blank=True)
+    statut = models.CharField(
+        max_length=15, choices=Statut.choices, default=Statut.EN_ATTENTE
+    )
+    motif_refus = models.CharField("Motif de refus", max_length=255, blank=True)
+    date_creation = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-date_creation']
+
+    def __str__(self):
+        return f"Demande {self.commercant} ({self.get_statut_display()})"
