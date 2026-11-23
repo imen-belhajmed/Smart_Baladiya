@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}Enregistrer un véhicule de collecte{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Enregistrer un véhicule de collecte</h1>
+        <p class="sous-titre">
+            Gestion du parc roulant communal pour le ramassage des ordures ménagères et du tri sélectif.
+        </p>
+    </div>
+    <div>
+        <a href="{% url 'collecte:route_list' %}" class="btn">← Retour au planning</a>
+    </div>
+</div>
+
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+    <form method="post" class="formulaire" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="messages">
+                {% for error in form.non_field_errors %}
+                    <li class="error">{{ error }}</li>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <p>
+            <label for="{{ form.plate_number.id_for_label }}">
+                {{ form.plate_number.label }} <span style="color: var(--rouge);">*</span>
+            </label>
+            {{ form.plate_number }}
+            {% if form.plate_number.help_text %}
+                <span class="helptext">{{ form.plate_number.help_text }}</span>
+            {% endif %}
+            {% if form.plate_number.errors %}
+                <ul class="errorlist">{% for err in form.plate_number.errors %}<li>{{ err }}</li>{% endfor %}</ul>
+            {% endif %}
+        </p>
+
+        <p>
+            <label for="{{ form.capacity_kg.id_for_label }}">
+                {{ form.capacity_kg.label }} <span style="color: var(--rouge);">*</span>
+            </label>
+            {{ form.capacity_kg }}
+            {% if form.capacity_kg.help_text %}
+                <span class="helptext">{{ form.capacity_kg.help_text }}</span>
+            {% endif %}
+            {% if form.capacity_kg.errors %}
+                <ul class="errorlist">{% for err in form.capacity_kg.errors %}<li>{{ err }}</li>{% endfor %}</ul>
+            {% endif %}
+        </p>
+
+        <p>
+            <label for="{{ form.status.id_for_label }}">
+                {{ form.status.label }} <span style="color: var(--rouge);">*</span>
+            </label>
+            {{ form.status }}
+            {% if form.status.help_text %}
+                <span class="helptext">{{ form.status.help_text }}</span>
+            {% endif %}
+            {% if form.status.errors %}
+                <ul class="errorlist">{% for err in form.status.errors %}<li>{{ err }}</li>{% endfor %}</ul>
+            {% endif %}
+        </p>
+
+        <div style="display: flex; gap: 0.8rem; justify-content: flex-end; margin-top: 1.5rem;">
+            <a href="{% url 'collecte:route_list' %}" class="btn">Annuler</a>
+            <button type="submit" class="btn btn-bleu">
+                💾 Enregistrer le véhicule
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

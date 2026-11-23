@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}Supprimer la tournée : {{ route.name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Supprimer une tournée obsolète</h1>
+        <p class="sous-titre">
+            Espace de gestion des tournées &bull; Seules les tournées planifiées ou annulées peuvent être supprimées.
+        </p>
+    </div>
+    <div>
+        <a href="{% url 'collecte:route_detail' route.pk %}" class="btn">← Annuler et revenir aux détails</a>
+    </div>
+</div>
+
+<div class="card" style="border: 2px solid #F8D7DA; background: #FFF5F5; max-width: 700px; margin: 0 auto;">
+    <div style="display: flex; align-items: flex-start; gap: 1.2rem; margin-bottom: 1.5rem;">
+        <span style="font-size: 2.8rem; line-height: 1;">⚠️</span>
+        <div style="flex: 1;">
+            <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.4rem; flex-wrap: wrap;">
+                {% if route.status == 'planned' %}
+                    <span class="badge badge-en_attente">Planifiée</span>
+                {% elif route.status == 'cancelled' %}
+                    <span class="badge badge-annulee">Annulée</span>
+                {% else %}
+                    <span class="badge badge-moyenne">{{ route.get_status_display }}</span>
+                {% endif %}
+                <span style="color: var(--gris); font-size: 0.9rem;">Prévue le {{ route.scheduled_date|date:"d/m/Y" }}</span>
+            </div>
+            <h2 style="color: #900C19; margin: 0 0 0.5rem 0; font-size: 1.3rem;">
+                {{ route.name }}
+            </h2>
+            <p style="color: #4A1519; margin: 0; font-size: 0.95rem;">
+                Zone : <strong>{{ route.zone.name }}</strong> ({{ route.zone.city }}) &bull;
+                Arrêts programmés : <strong>{{ route.stops.count }}</strong> conteneur(s) &bull;
+                Équipe : {{ route.team.name|default:"Aucune" }}
+            </p>
+        </div>
+    </div>
+
+    <div style="background: #fff; border: 1px solid var(--bord); border-radius: 8px; padding: 1.2rem; margin-bottom: 1.5rem;">
+        <p style="margin: 0 0 0.5rem 0; font-weight: 600; color: var(--texte);">
+            Confirmation de suppression irréversible :
+        </p>
+        <p style="margin: 0; color: var(--gris); font-size: 0.92rem; line-height: 1.5;">
+            Êtes-vous sûr de vouloir supprimer définitivement cette tournée ainsi que l'ensemble des arrêts associés ?
+            Cette action libérera le véhicule et l'équipe assignés.
+        </p>
+    </div>
+
+    <form method="post" style="display: flex; gap: 0.8rem; justify-content: flex-end; margin: 0;">
+        {% csrf_token %}
+        <a href="{% url 'collecte:route_detail' route.pk %}" class="btn">
+            Annuler
+        </a>
+        <button type="submit" class="btn btn-rouge">
+            🗑️ Supprimer définitivement
+        </button>
+    </form>
+</div>
+{% endblock %}

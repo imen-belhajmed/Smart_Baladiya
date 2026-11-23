@@ -1,0 +1,57 @@
+{% extends "forum_events/base.html" %}
+{% block title %}Forum and events{% endblock %}
+{% block content %}
+  <div class="forum-page-heading">
+    <div>
+      <h1>Community forum</h1>
+      <p>Share ideas, ask questions, and stay up to date with your community.</p>
+    </div>
+    {% if user.is_staff %}
+      <div class="heading-actions">
+        <a class="button new-discussion-button" href="{% url 'forum:thread-create' %}">Start a discussion</a>
+        <a class="button secondary" href="{% url 'forum:category-create' %}">Add a forum</a>
+      </div>
+    {% endif %}
+  </div>
+  {% include "forum_events/_upcoming_events.html" %}
+  <div class="forum-layout">
+    <section class="discussion-feed" aria-label="Recent discussions">
+      <div class="feed-heading">
+        <div>
+          <h2>Recent discussions</h2>
+          <p>What the community is talking about</p>
+        </div>
+        <a class="clear-search" href="{% url 'forum:thread-list' %}">Browse all</a>
+      </div>
+      {% for thread in recent_threads %}
+        {% include "forum_events/_thread_card.html" %}
+      {% empty %}
+        <div class="empty-state">
+          <h3>No discussions yet</h3>
+          <p>There are no community discussions to show yet.</p>
+        </div>
+      {% endfor %}
+    </section>
+    <aside class="forum-sidebar" aria-label="Forum categories">
+      <section class="sidebar-section">
+        <div class="sidebar-heading">
+          <h2>Explore forums</h2>
+          <a href="{% url 'forum:category-list' %}">All</a>
+        </div>
+        <a class="sidebar-category all-categories" href="{% url 'forum:thread-list' %}">
+          <span class="category-dot" aria-hidden="true"></span>
+          <span class="sidebar-category-name">All discussions</span>
+        </a>
+        {% for category in categories %}
+          <a class="sidebar-category" href="{% url 'forum:category-threads' category.pk %}">
+            <span class="category-dot" aria-hidden="true"></span>
+            <span class="sidebar-category-name">{{ category.name }}</span>
+            <span class="sidebar-count">{{ category.threads.count }}</span>
+          </a>
+        {% empty %}
+          <p class="sidebar-empty">No forums have been created yet.</p>
+        {% endfor %}
+      </section>
+    </aside>
+  </div>
+{% endblock %}
