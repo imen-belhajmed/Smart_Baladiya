@@ -20,4 +20,18 @@ urlpatterns = [
         views.supprimer_emplacement,
         name='supprimer_emplacement',
     ),
+# Commerçants
+    path('commercants/', views.liste_commercants, name='liste_commercants'),
+    path('commercants/ajouter/', views.ajouter_commercant, name='ajouter_commercant'),
+    path('commercants/<int:pk>/', views.detail_commercant, name='detail_commercant'),
+    path(
+        'commercants/<int:pk>/modifier/',
+        views.modifier_commercant,
+        name='modifier_commercant',
+    ),
+    path(
+        'commercants/<int:pk>/supprimer/',
+        views.supprimer_commercant,
+        name='supprimer_commercant',
+    ),
 ]

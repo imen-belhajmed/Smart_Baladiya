@@ -14,11 +14,13 @@
 {% endif %}
 
 <div class="actions">
+    <a href="{% url 'marches:liste_commercants' %}" class="btn btn-secondary">
+        Voir les commerçants
+    </a>
     <a href="{% url 'marches:ajouter_emplacement' %}" class="btn btn-primary">
         + Ajouter un emplacement
     </a>
 </div>
-
 <form method="get">
     <label for="numero">Numéro</label>
     <input
