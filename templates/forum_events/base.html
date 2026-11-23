@@ -1,1 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
+{% block extra_scripts %}
+<script src="{% static 'js/forum_editor.js' %}" defer></script>
+{% endblock %}

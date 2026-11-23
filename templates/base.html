@@ -23,16 +23,17 @@
 
     <div class="user">
         {% if user.is_authenticated %}
-            {{ user }} ({{ user.get_role_display }})
+            <a href="{% url 'accounts:profile' %}">{{ user }} ({{ user.get_role_display }})</a>
 
             <form method="post" action="{% url 'accounts:logout' %}">
                 {% csrf_token %}
                 <button class="btn btn-petit" type="submit">
-                    Déconnexion
+                    Déconnexion / Sign out
                 </button>
             </form>
         {% else %}
-            <a href="{% url 'accounts:login' %}">Connexion</a>
+            <a href="{% url 'accounts:login' %}">Connexion / Log in</a>
+            <a href="{% url 'accounts:register' %}">Inscription / Sign up</a>
         {% endif %}
     </div>
 </nav>
@@ -65,5 +66,6 @@
 
     {% block content %}{% endblock %}
 </main>
+{% block extra_scripts %}{% endblock %}
 </body>
 </html>

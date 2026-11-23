@@ -1,14 +1,14 @@
-{% extends "forum_events/base.html" %}
-{% block title %}Sign up{% endblock %}
+{% extends "base.html" %}
+{% block title %}Inscription{% endblock %}
 {% block content %}
-  <h1>Create an account</h1>
-  <section class="form-card">
-    <form method="post">
+  <h1>Créer un compte</h1>
+  <section class="card">
+    <form method="post" class="formulaire">
       {% csrf_token %}
       {{ form.as_p }}
       <div class="actions">
-        <button type="submit">Sign up</button>
-        <a class="button secondary" href="{% url 'login' %}">Already have an account?</a>
+        <button class="btn btn-bleu" type="submit">S'inscrire</button>
+        <a class="btn" href="{% url 'accounts:login' %}">J'ai déjà un compte</a>
       </div>
     </form>
   </section>

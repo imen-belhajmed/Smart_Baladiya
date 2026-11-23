@@ -3,9 +3,37 @@
 {% block content %}
   <h1>{{ page_title }}</h1>
   <section class="form-card">
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
       {% csrf_token %}
-      {{ form.as_p }}
+      {{ form.non_field_errors }}
+      {% for field in form %}
+        <div class="form-field{% if field.name == 'event_start' or field.name == 'event_end' or field.name == 'location' or field.name == 'header_image' %} event-form-field{% endif %}">
+          {{ field.label_tag }}
+          {% if field.name == "content" %}
+            <div class="rich-text-editor">
+              <div class="rich-text-toolbar" role="toolbar" aria-label="Description formatting">
+                <button type="button" data-format="bold" aria-label="Bold"><strong>B</strong></button>
+                <button type="button" data-format="italic" aria-label="Italic"><em>I</em></button>
+                <button type="button" data-format="underline" aria-label="Underline"><u>U</u></button>
+                <button type="button" data-format="strike" aria-label="Strikethrough"><s>S</s></button>
+                <button type="button" data-format="heading" aria-label="Heading">H</button>
+                <button type="button" data-format="bullet" aria-label="Bulleted list">• List</button>
+                <button type="button" data-format="number" aria-label="Numbered list">1. List</button>
+                <button type="button" data-format="quote" aria-label="Quote or bordered callout">❝</button>
+                <button type="button" data-format="link" aria-label="Insert link">Link</button>
+                <button type="button" data-format="highlight" aria-label="Highlight">Highlight</button>
+                <button type="button" data-format="divider" aria-label="Insert divider">Divider</button>
+              </div>
+              {{ field }}
+              <small class="helptext">Select text and use the toolbar. You can also use Markdown; raw HTML is sanitized.</small>
+            </div>
+          {% else %}
+            {{ field }}
+          {% endif %}
+          {% if field.help_text %}<small class="helptext">{{ field.help_text }}</small>{% endif %}
+          {{ field.errors }}
+        </div>
+      {% endfor %}
       <div class="actions">
         <button type="submit">Save</button>
         <a class="button secondary" href="{{ cancel_url }}">Cancel</a>

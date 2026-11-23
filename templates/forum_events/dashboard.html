@@ -6,10 +6,10 @@
       <h1>Community forum</h1>
       <p>Share ideas, ask questions, and stay up to date with your community.</p>
     </div>
-    {% if user.is_staff %}
+    {% if user.is_authenticated %}
       <div class="heading-actions">
-        <a class="button new-discussion-button" href="{% url 'forum:thread-create' %}">Start a discussion</a>
-        <a class="button secondary" href="{% url 'forum:category-create' %}">Add a forum</a>
+        <a class="button new-discussion-button" href="{% url 'forum:thread-create' %}">Add discussion or event</a>
+        {% if user.is_staff %}<a class="button secondary" href="{% url 'forum:category-create' %}">Add a forum</a>{% endif %}
       </div>
     {% endif %}
   </div>

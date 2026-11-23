@@ -84,8 +84,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # ===== Authentification =====
 AUTH_USER_MODEL = 'accounts.User'
 LOGIN_URL = 'accounts:login'
-LOGIN_REDIRECT_URL = 'home'
-LOGOUT_REDIRECT_URL = 'accounts:login'
+LOGIN_REDIRECT_URL = 'forum:dashboard'
+LOGOUT_REDIRECT_URL = 'forum:dashboard'
 
 # ===== Fichiers médias (uploads) =====
 MEDIA_URL = '/media/'

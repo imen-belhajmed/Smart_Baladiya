@@ -1,8 +1,14 @@
 {% extends "forum_events/base.html" %}
+{% load forum_formatting %}
 {% block title %}{{ thread.title }}{% endblock %}
 {% block content %}
   <p><a href="{% url 'forum:thread-list' %}">← Back to threads</a></p>
   <article class="card">
+    {% if thread.kind == "event" and thread.header_image %}
+      <figure class="event-header-image">
+        <img src="{{ thread.header_image.url }}" alt="Header image for {{ thread.title }}">
+      </figure>
+    {% endif %}
     <span class="tag">{{ thread.get_kind_display }}</span>
     <span class="tag">{{ thread.category }}</span>
     {% if thread.is_locked %}<span class="tag">Locked</span>{% endif %}
@@ -13,12 +19,39 @@
       {% if thread.updated_at != thread.created_at %} · Updated {{ thread.updated_at|date:"M j, Y, P" }}{% endif %}
     </div>
     {% if thread.kind == "event" %}
-      <p><strong>Starts:</strong> {{ thread.event_start|date:"M j, Y, P" }}
-        {% if thread.event_end %}<br><strong>Ends:</strong> {{ thread.event_end|date:"M j, Y, P" }}{% endif %}
-        {% if thread.location %}<br><strong>Location:</strong> {{ thread.location }}{% endif %}
-      </p>
+      <section class="event-details" aria-label="Event details">
+        <div>
+          <span class="event-detail-label">Begins</span>
+          <strong>{{ thread.event_start|date:"l j F Y, H:i" }}</strong>
+        </div>
+        <div>
+          <span class="event-detail-label">Ends</span>
+          <strong>{% if thread.event_end %}{{ thread.event_end|date:"l j F Y, H:i" }}{% else %}Not specified{% endif %}</strong>
+        </div>
+        {% if thread.location %}
+          <div>
+            <span class="event-detail-label">Location</span>
+            <strong>{{ thread.location }}</strong>
+          </div>
+        {% endif %}
+      </section>
     {% endif %}
-    <p>{{ thread.content|linebreaksbr }}</p>
+    {% forum_thread_content thread as rendered_thread_content %}
+    <div class="thread-content">{{ rendered_thread_content }}</div>
+    {% forum_unplaced_media thread as unplaced_media %}
+    {% if unplaced_media %}
+      <section class="thread-media" aria-label="Media attachments">
+        <h2>Photos and videos</h2>
+        <div class="thread-media-grid">
+          {% for media in unplaced_media %}
+            <figure class="thread-media-item">
+              {{ media|forum_media:thread.title }}
+              {% if media.caption %}<figcaption>{{ media.caption }}</figcaption>{% endif %}
+            </figure>
+          {% endfor %}
+        </div>
+      </section>
+    {% endif %}
     {% if user.is_staff %}
       <div class="actions">
         <a class="button secondary" href="{% url 'forum:thread-update' thread.pk %}">Edit</a>
@@ -42,7 +75,7 @@
   {% for comment in thread.comments.all %}
     <article class="card">
       <div class="meta">{% if comment.author %}<a href="{% url 'forum:profile' comment.author.username %}">{% if comment.author.is_superuser %}Admin{% else %}{{ comment.author }}{% endif %}</a> · {% endif %}{{ comment.created_at|date:"M j, Y, P" }}</div>
-      <p>{{ comment.content|linebreaksbr }}</p>
+      <div class="thread-content">{{ comment.content|forum_markdown }}</div>
       {% if user.is_staff %}
         <div class="actions">
           <a class="button secondary" href="{% url 'forum:comment-update' comment.pk %}">Edit</a>

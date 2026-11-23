@@ -1,5 +1,6 @@
 from io import BytesIO
 import tempfile
+from datetime import timedelta
 
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -141,6 +142,21 @@ class ForumCrudTests(TestCase):
             },
         )
         self.assertEqual(invalid_response.status_code, 200)
+        self.assertFalse(Thread.objects.exists())
+
+        invalid_end_response = self.client.post(
+            url,
+            {
+                "title": "Community clean-up",
+                "category": category.pk,
+                "kind": Thread.Kind.EVENT,
+                "content": "Join the clean-up.",
+                "event_start": "2026-12-01T10:00",
+                "event_end": "",
+                "location": "Central park",
+            },
+        )
+        self.assertEqual(invalid_end_response.status_code, 200)
         self.assertFalse(Thread.objects.exists())
 
         response = self.client.post(
@@ -394,6 +410,239 @@ class ForumCrudTests(TestCase):
         response = self.client.get(reverse("forum:category-create"))
         self.assertEqual(response.status_code, 302)
         self.assertIn("/admin/login/", response.url)
+
+
+class CitizenThreadCreationTests(TestCase):
+    def setUp(self):
+        self.media_directory = tempfile.TemporaryDirectory()
+        media_settings = override_settings(MEDIA_ROOT=self.media_directory.name)
+        media_settings.enable()
+        self.addCleanup(self.media_directory.cleanup)
+        self.addCleanup(media_settings.disable)
+        self.citizen = get_user_model().objects.create_user(
+            username="citizen",
+            password="test-password",
+        )
+        self.category = Category.objects.create(name="Neighborhood")
+        self.url = reverse("forum:thread-create")
+        self.client.force_login(self.citizen)
+
+    def image_upload(self, name, image_format):
+        image_bytes = BytesIO()
+        Image.new("RGB", (4, 4), color="blue").save(
+            image_bytes, format=image_format
+        )
+        content_type = "image/gif" if image_format == "GIF" else "image/png"
+        return SimpleUploadedFile(
+            name, image_bytes.getvalue(), content_type=content_type
+        )
+
+    def test_authenticated_citizen_can_create_discussion(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Add discussion or event")
+        self.assertContains(response, 'name="event_start"')
+
+        response = self.client.post(
+            self.url,
+            {
+                "title": "Community garden",
+                "category": self.category.pk,
+                "kind": Thread.Kind.DISCUSSION,
+                "content": "Can we organize a community garden?",
+                "event_start": "2026-12-01T10:00",
+                "event_end": "2026-12-01T12:00",
+                "location": "Neighborhood park",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        thread = Thread.objects.get(title="Community garden")
+        self.assertEqual(thread.author, self.citizen)
+        self.assertEqual(thread.kind, Thread.Kind.DISCUSSION)
+        self.assertIsNone(thread.event_start)
+        self.assertIsNone(thread.event_end)
+        self.assertEqual(thread.location, "")
+
+    def test_authenticated_citizen_can_create_event_and_detail_shows_event_info(self):
+        events = Category.objects.create(
+            name="Events only",
+            allow_discussions=False,
+            allow_events=True,
+        )
+        starts = timezone.localtime(
+            timezone.now() + timedelta(days=5)
+        ).strftime("%Y-%m-%dT%H:%M")
+        ends = timezone.localtime(
+            timezone.now() + timedelta(days=5, hours=2)
+        ).strftime("%Y-%m-%dT%H:%M")
+
+        response = self.client.post(
+            self.url,
+            {
+                "title": "Community meeting",
+                "category": events.pk,
+                "kind": Thread.Kind.EVENT,
+                "content": (
+                    "<script>alert('unsafe')</script>\n\n"
+                    "**Please register**\n\n"
+                    "[[media:0]]\n\n[[media:1]]\n\n[[media:2]]"
+                ),
+                "event_start": starts,
+                "event_end": ends,
+                "location": "Community hall",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        event = Thread.objects.get(title="Community meeting")
+        self.assertEqual(event.author, self.citizen)
+        self.assertEqual(event.kind, Thread.Kind.EVENT)
+        self.assertEqual(event.location, "Community hall")
+        response = self.client.get(reverse("forum:thread-detail", args=[event.pk]))
+        self.assertContains(response, "Begins")
+        self.assertContains(response, "Ends")
+        self.assertContains(response, "Community hall")
+        self.assertContains(response, "<strong>Please register</strong>", html=True)
+        self.assertNotContains(response, "<script>", html=True)
+
+    def test_event_header_and_discussion_media_uploads_and_video_embeds_render(self):
+        event_category = Category.objects.create(
+            name="Events",
+            allow_discussions=False,
+            allow_events=True,
+        )
+        starts = timezone.localtime(
+            timezone.now() + timedelta(days=5)
+        ).strftime("%Y-%m-%dT%H:%M")
+        ends = timezone.localtime(
+            timezone.now() + timedelta(days=5, hours=2)
+        ).strftime("%Y-%m-%dT%H:%M")
+        mp4 = b"\x00\x00\x00\x18ftypisom\x00\x00\x02\x00isomiso2"
+
+        response = self.client.post(
+            self.url,
+            {
+                "title": "Media-rich neighborhood event",
+                "category": event_category.pk,
+                "kind": Thread.Kind.EVENT,
+                "content": "Join our event.\n\n[[media:0]]\n\n[[media:1]]\n\n[[media:2]]",
+                "event_start": starts,
+                "event_end": ends,
+                "location": "Community hall",
+                "header_image": self.image_upload("header.png", "PNG"),
+                "media_files": [
+                    self.image_upload("event.gif", "GIF"),
+                    SimpleUploadedFile(
+                        "event.mp4", mp4, content_type="video/mp4"
+                    ),
+                ],
+                "video_links": "https://youtu.be/dQw4w9WgXcQ",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        event = Thread.objects.get(title="Media-rich neighborhood event")
+        self.assertTrue(event.header_image)
+        self.assertEqual(event.media.count(), 3)
+        response = self.client.get(reverse("forum:thread-detail", args=[event.pk]))
+        self.assertContains(response, "Header image for Media-rich neighborhood event")
+        self.assertContains(response, "event.gif")
+        self.assertContains(response, "<video", html=False)
+        self.assertNotContains(response, "[[media:")
+        self.assertNotContains(response, "thread-media-grid")
+        self.assertContains(
+            response,
+            "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ",
+        )
+
+    def test_discussion_accepts_image_and_gif_attachments(self):
+        response = self.client.post(
+            self.url,
+            {
+                "title": "Neighborhood photo discussion",
+                "category": self.category.pk,
+                "kind": Thread.Kind.DISCUSSION,
+                "content": (
+                    "Here are images for our discussion.\n\n"
+                    "[[media:0]]\n\n[[media:1]]"
+                ),
+                "media_files": [
+                    self.image_upload("street.png", "PNG"),
+                    self.image_upload("garden.gif", "GIF"),
+                ],
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        discussion = Thread.objects.get(title="Neighborhood photo discussion")
+        self.assertEqual(discussion.kind, Thread.Kind.DISCUSSION)
+        self.assertEqual(discussion.media.count(), 2)
+        response = self.client.get(
+            reverse("forum:thread-detail", args=[discussion.pk])
+        )
+        self.assertContains(response, "street.png")
+        self.assertContains(response, "garden.gif")
+        self.assertNotContains(response, "thread-media-grid")
+
+    def test_unsupported_video_host_is_rejected(self):
+        event_category = Category.objects.create(
+            name="Events",
+            allow_discussions=False,
+            allow_events=True,
+        )
+        starts = timezone.localtime(
+            timezone.now() + timedelta(days=5)
+        ).strftime("%Y-%m-%dT%H:%M")
+        ends = timezone.localtime(
+            timezone.now() + timedelta(days=5, hours=2)
+        ).strftime("%Y-%m-%dT%H:%M")
+
+        response = self.client.post(
+            self.url,
+            {
+                "title": "Unsafe video link",
+                "category": event_category.pk,
+                "kind": Thread.Kind.EVENT,
+                "content": "This event has an untrusted video host.",
+                "event_start": starts,
+                "event_end": ends,
+                "video_links": "https://example.com/video",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Thread.objects.filter(title="Unsafe video link").exists())
+
+    def test_citizen_cannot_create_discussion_in_events_only_category(self):
+        events = Category.objects.create(
+            name="Events only",
+            allow_discussions=False,
+            allow_events=True,
+        )
+
+        response = self.client.post(
+            self.url,
+            {
+                "title": "Not a discussion category",
+                "category": events.pk,
+                "kind": Thread.Kind.DISCUSSION,
+                "content": "This should not be accepted.",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(
+            Thread.objects.filter(title="Not a discussion category").exists()
+        )
+
+    def test_anonymous_visitor_must_sign_in_to_create_thread(self):
+        self.client.logout()
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/comptes/connexion/", response.url)
 
 
 class AuthenticationTests(TestCase):

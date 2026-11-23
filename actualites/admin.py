@@ -1,8 +1,9 @@
 from django.contrib import admin
+from accounts.admin import smart_admin_site
 from .models import Alerte
 
 
-@admin.register(Alerte)
+@admin.register(Alerte, site=smart_admin_site)
 class AlerteAdmin(admin.ModelAdmin):
     list_display = ('titre', 'niveau_urgence', 'auteur', 'date_publication', 'date_expiration', 'est_active', 'piece_jointe')
     list_filter = ('niveau_urgence', 'date_publication', 'date_expiration')

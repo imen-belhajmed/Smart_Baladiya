@@ -1,3 +1,4 @@
+{% load forum_formatting %}
 <section class="upcoming-events-feed" aria-labelledby="upcoming-events-heading">
   <div class="events-section-heading">
     <div>
@@ -18,15 +19,20 @@
         {% for event in events %}
           <article class="event-slide" data-event-slide aria-label="{{ forloop.counter }} of {{ events|length }}">
             <div class="event-feature-card">
-              <div class="event-feature-art" role="img" aria-label="Event image placeholder">
-                <span>COMMUNITY<br>EVENT</span>
-              </div>
+              {% if event.header_image %}
+                <img class="event-feature-image" src="{{ event.header_image.url }}" alt="Header image for {{ event.title }}">
+              {% else %}
+                <div class="event-feature-art" role="img" aria-label="Event image placeholder">
+                  <span>COMMUNITY<br>EVENT</span>
+                </div>
+              {% endif %}
               <div class="event-feature-content">
                 <span class="event-feature-label">{{ event.category }}</span>
                 <h3><a href="{% url 'forum:thread-detail' event.pk %}">{{ event.title }}</a></h3>
-                <p>{{ event.content|truncatewords:36 }}</p>
+                <p>{{ event.content|forum_markdown|striptags|truncatewords:36 }}</p>
                 <div class="event-feature-meta">
-                  <span>{{ event.event_start|date:"M j, Y, P" }}</span>
+                  <span><strong>Begins:</strong> {{ event.event_start|date:"l j F Y, H:i" }}</span>
+                  {% if event.event_end %}<span><strong>Ends:</strong> {{ event.event_end|date:"l j F Y, H:i" }}</span>{% endif %}
                   {% if event.location %}<span>{{ event.location }}</span>{% endif %}
                 </div>
                 <a class="button" href="{% url 'forum:thread-detail' event.pk %}">View event</a>

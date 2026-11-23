@@ -7,7 +7,7 @@
       <h1>{{ page_title }}</h1>
       <p>{% if category and category.description %}{{ category.description }}{% else %}Join your neighbors in sharing ideas, questions, and local updates.{% endif %}</p>
     </div>
-    {% if user.is_staff %}
+    {% if user.is_authenticated %}
       <a class="button new-discussion-button" href="{% url 'forum:thread-create' %}">{{ create_label }}</a>
     {% endif %}
   </div>

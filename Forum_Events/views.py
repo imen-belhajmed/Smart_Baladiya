@@ -21,13 +21,41 @@ from django.views.generic import (
 )
 
 from .forms import CategoryForm, CommentForm, MemberProfileForm, ThreadForm
-from .models import Category, Comment, MemberProfile, Thread
+from accounts.forms import RegistrationForm
+from .models import Category, Comment, MemberProfile, Thread, ThreadMedia
+
+
+def save_thread_media(thread, form, user):
+    last_media_position = (
+        thread.media.order_by("-position").values_list("position", flat=True).first()
+    )
+    position = 0 if last_media_position is None else last_media_position + 1
+    for upload in form.cleaned_data.get("media_files", []):
+        media = ThreadMedia(
+            thread=thread,
+            position=position,
+            kind=ThreadMedia.kind_for_filename(upload.name),
+            file=upload,
+            uploaded_by=user,
+        )
+        media.full_clean()
+        media.save()
+        position += 1
+    for video_url in form.cleaned_data.get("video_links", []):
+        media = ThreadMedia(
+            thread=thread,
+            position=position,
+            kind=ThreadMedia.Kind.VIDEO,
+            external_url=video_url,
+            uploaded_by=user,
+        )
+        media.full_clean()
+        media.save()
+        position += 1
 
 
 class IntegratedUserCreationForm(UserCreationForm):
-    class Meta(UserCreationForm.Meta):
-        model = get_user_model()
-        fields = ("username",)
+    pass
 
 
 class DashboardView(TemplateView):
@@ -276,8 +304,7 @@ class CategoryDeleteView(DeleteView):
             return redirect(self.success_url)
 
 
-@method_decorator(staff_member_required, name="dispatch")
-class ThreadCreateView(CreateView):
+class ThreadCreateView(LoginRequiredMixin, CreateView):
     model = Thread
     form_class = ThreadForm
     template_name = "forum_events/object_form.html"
@@ -286,10 +313,26 @@ class ThreadCreateView(CreateView):
         "cancel_url": reverse_lazy("forum:thread-list"),
     }
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["user"] = self.request.user
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if not self.request.user.is_staff:
+            context["page_title"] = "Add discussion or event"
+        return context
+
     def form_valid(self, form):
         form.instance.author = self.request.user
-        messages.success(self.request, "Discussion or event added.")
-        return super().form_valid(form)
+        messages.success(
+            self.request,
+            f"{form.instance.get_kind_display()} added.",
+        )
+        response = super().form_valid(form)
+        save_thread_media(self.object, form, self.request.user)
+        return response
 
     def get_success_url(self):
         return reverse("forum:thread-detail", kwargs={"pk": self.object.pk})
@@ -307,7 +350,9 @@ class ThreadUpdateView(UpdateView):
 
     def form_valid(self, form):
         messages.success(self.request, "Discussion or event updated.")
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        save_thread_media(self.object, form, self.request.user)
+        return response
 
     def get_success_url(self):
         return reverse("forum:thread-detail", kwargs={"pk": self.object.pk})

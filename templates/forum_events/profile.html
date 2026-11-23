@@ -1,4 +1,5 @@
 {% extends "forum_events/base.html" %}
+{% load forum_formatting %}
 {% block title %}{% if profile.is_superuser %}Admin{% else %}{{ profile.username }}{% endif %}{% endblock %}
 {% block content %}
   <h1>{% if profile.is_superuser %}Admin{% else %}{{ profile.username }}{% endif %}</h1>
@@ -10,7 +11,8 @@
   {% endif %}
   {% if user.is_authenticated %}
     {% if user.pk == profile.pk %}
-      <p><a href="{% url 'forum:profile-edit' profile.username %}">Edit profile picture</a></p>
+      <p><a href="{% url 'accounts:profile-edit' %}">Edit profile</a></p>
+      <p><a class="button danger" href="{% url 'accounts:delete-account' %}">Delete account</a></p>
     {% endif %}
   {% endif %}
   <p>{{ profile_threads.count }} thread{{ profile_threads.count|pluralize }} · {{ profile_comments.count }} comment{{ profile_comments.count|pluralize }}</p>
@@ -29,7 +31,7 @@
     {% for comment in profile_comments %}
       <article class="card">
         <p>On <a href="{% url 'forum:thread-detail' comment.thread.pk %}">{{ comment.thread.title }}</a></p>
-        <p>{{ comment.content|linebreaksbr }}</p>
+        <div class="thread-content">{{ comment.content|forum_markdown }}</div>
         <div class="meta">{{ comment.created_at|date:"M j, Y, P" }}</div>
       </article>
     {% empty %}

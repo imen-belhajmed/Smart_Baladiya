@@ -4,10 +4,11 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import include, path
 from django.views.generic import TemplateView
-from Forum_Events.views import SignUpView
+from accounts.views import SignUpView, delete_account, profile, profile_edit
+from accounts.admin import smart_admin_site
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('admin/', smart_admin_site.urls),
     path('', TemplateView.as_view(template_name='home.html'), name='home'),
     path('comptes/', include('accounts.urls')),
     # ===== Modules (chaque membre décommente SA ligne) =====
@@ -19,8 +20,12 @@ urlpatterns = [
         template_name='registration/login.html',
         redirect_authenticated_user=True,
     ), name='login'),
-    path('accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path('accounts/logout/', auth_views.LogoutView.as_view(next_page='forum:dashboard'), name='logout'),
     path('accounts/signup/', SignUpView.as_view(), name='signup'),
+    path('accounts/register/', SignUpView.as_view(), name='register'),
+    path('accounts/profile/', profile, name='profile'),
+    path('accounts/profile/edit/', profile_edit, name='profile-edit'),
+    path('accounts/profile/delete/', delete_account, name='delete-account'),
     path('actualites/', include('actualites.urls')), # Module 5 - Ribel
     path('collecte/', include('agent_collect.urls')), # Module 6 - Mahmoud (Collecte)
 ]

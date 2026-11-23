@@ -1,3 +1,4 @@
+{% load forum_formatting %}
 <article class="thread-card">
   {% if thread.author %}
     <a class="thread-avatar" href="{% url 'forum:profile' thread.author.username %}" aria-label="View {{ thread.author }}'s profile">
@@ -7,6 +8,11 @@
     <span class="thread-avatar" aria-hidden="true">C</span>
   {% endif %}
   <div class="thread-card-body">
+    {% if thread.kind == "event" and thread.header_image %}
+      <a class="thread-card-header-link" href="{% url 'forum:thread-detail' thread.pk %}">
+        <img class="thread-card-header" src="{{ thread.header_image.url }}" alt="Header image for {{ thread.title }}">
+      </a>
+    {% endif %}
     <div class="thread-card-top">
       <div class="thread-tags">
         <a class="tag category-tag" href="{% url 'forum:category-threads' thread.category_id %}">{{ thread.category }}</a>
@@ -16,9 +22,9 @@
       <time class="meta" datetime="{{ thread.created_at|date:'c' }}">{{ thread.created_at|date:"M j, Y" }}</time>
     </div>
     <h3 class="thread-title"><a href="{% url 'forum:thread-detail' thread.pk %}">{{ thread.title }}</a></h3>
-    <p class="thread-excerpt">{{ thread.content|truncatewords:38 }}</p>
+    <p class="thread-excerpt">{{ thread.content|forum_markdown|striptags|truncatewords:38 }}</p>
     {% if thread.kind == "event" %}
-      <p class="thread-event-meta"><strong>{{ thread.event_start|date:"M j, Y, P" }}</strong>{% if thread.location %} · {{ thread.location }}{% endif %}</p>
+      <p class="thread-event-meta"><strong>Begins:</strong> {{ thread.event_start|date:"l j F Y, H:i" }}{% if thread.event_end %}<br><strong>Ends:</strong> {{ thread.event_end|date:"l j F Y, H:i" }}{% endif %}{% if thread.location %}<br><strong>Location:</strong> {{ thread.location }}{% endif %}</p>
     {% endif %}
     <div class="thread-card-footer">
       <span class="thread-author">
