@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ titre_action }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>{{ titre_action }}</h1>
+        <p class="sous-titre">
+            Saisie de la tournée, affectation des ressources (véhicule, équipe) et composition des arrêts de collecte.
+        </p>
+    </div>
+    <div>
+        <a href="{% url 'collecte:route_list' %}" class="btn">← Retour au planning</a>
+    </div>
+</div>
+
+<div class="card" style="max-width: 900px; margin: 0 auto;">
+    <form method="post" class="formulaire" style="max-width: none;" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="messages" style="margin-bottom: 1.5rem;">
+                {% for error in form.non_field_errors %}
+                    <li class="error">{{ error }}</li>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <h2>1. Paramètres généraux de la tournée</h2>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin-bottom: 1.5rem;">
+            <div>
+                <label for="{{ form.name.id_for_label }}">
+                    {{ form.name.label }} <span style="color: var(--rouge);">*</span>
+                </label>
+                {{ form.name }}
+                {% if form.name.errors %}
+                    <ul class="errorlist">{% for err in form.name.errors %}<li>{{ err }}</li>{% endfor %}</ul>
+                {% endif %}
+            </div>
+
+            <div>
+                <label for="{{ form.zone.id_for_label }}">
+                    {{ form.zone.label }} <span style="color: var(--rouge);">*</span>
+                </label>
+                {{ form.zone }}
+                {% if form.zone.errors %}
+                    <ul class="errorlist">{% for err in form.zone.errors %}<li>{{ err }}</li>{% endfor %}</ul>
+                {% endif %}
+            </div>
+
+            <div>
+                <label for="{{ form.team.id_for_label }}">
+                    {{ form.team.label }}
+                </label>
+                {{ form.team }}
+                {% if form.team.errors %}
+                    <ul class="errorlist">{% for err in form.team.errors %}<li>{{ err }}</li>{% endfor %}</ul>
+                {% endif %}
+            </div>
+
+            <div>
+                <label for="{{ form.vehicle.id_for_label }}">
+                    {{ form.vehicle.label }}
+                </label>
+                {{ form.vehicle }}
+                <span class="helptext">Seuls les véhicules avec statut « Disponible » sont affichés.</span>
+                {% if form.vehicle.errors %}
+                    <ul class="errorlist">{% for err in form.vehicle.errors %}<li>{{ err }}</li>{% endfor %}</ul>
+                {% endif %}
+            </div>
+
+            <div>
+                <label for="{{ form.scheduled_date.id_for_label }}">
+                    {{ form.scheduled_date.label }} <span style="color: var(--rouge);">*</span>
+                </label>
+                {{ form.scheduled_date }}
+                {% if form.scheduled_date.errors %}
+                    <ul class="errorlist">{% for err in form.scheduled_date.errors %}<li>{{ err }}</li>{% endfor %}</ul>
+                {% endif %}
+            </div>
+
+            <div>
+                <label for="{{ form.status.id_for_label }}">
+                    {{ form.status.label }} <span style="color: var(--rouge);">*</span>
+                </label>
+                {{ form.status }}
+                {% if form.status.errors %}
+                    <ul class="errorlist">{% for err in form.status.errors %}<li>{{ err }}</li>{% endfor %}</ul>
+                {% endif %}
+            </div>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid var(--bord); margin: 2rem 0 1.5rem;">
+
+        <h2>2. Arrêts de collecte (RouteStops)</h2>
+        <p class="sous-titre" style="margin-bottom: 1rem;">
+            Chaque conteneur doit appartenir à la zone sélectionnée ci-dessus. L'ordre de passage doit être unique.
+        </p>
+
+        {{ formset.management_form }}
+
+        {% if formset.non_form_errors %}
+            <div class="messages" style="margin-bottom: 1.2rem;">
+                {% for error in formset.non_form_errors %}
+                    <li class="error">{{ error }}</li>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <table style="margin-bottom: 1.5rem;">
+            <thead>
+                <tr>
+                    <th style="width: 80px;">Ordre</th>
+                    <th>Conteneur</th>
+                    <th style="width: 140px;">Urgence</th>
+                    <th>Instructions</th>
+                    {% if formset.can_delete %}
+                        <th style="width: 80px; text-align: center;">Retirer</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for stop_form in formset %}
+                    <tr>
+                        <td style="vertical-align: top;">
+                            {{ stop_form.id }}
+                            {{ stop_form.order }}
+                            {% if stop_form.order.errors %}
+                                <ul class="errorlist">{% for err in stop_form.order.errors %}<li>{{ err }}</li>{% endfor %}</ul>
+                            {% endif %}
+                        </td>
+                        <td style="vertical-align: top;">
+                            {{ stop_form.container }}
+                            {% if stop_form.container.errors %}
+                                <ul class="errorlist">{% for err in stop_form.container.errors %}<li>{{ err }}</li>{% endfor %}</ul>
+                            {% endif %}
+                        </td>
+                        <td style="vertical-align: top;">
+                            {{ stop_form.urgency }}
+                            {% if stop_form.urgency.errors %}
+                                <ul class="errorlist">{% for err in stop_form.urgency.errors %}<li>{{ err }}</li>{% endfor %}</ul>
+                            {% endif %}
+                        </td>
+                        <td style="vertical-align: top;">
+                            {{ stop_form.notes }}
+                            {% if stop_form.notes.errors %}
+                                <ul class="errorlist">{% for err in stop_form.notes.errors %}<li>{{ err }}</li>{% endfor %}</ul>
+                            {% endif %}
+                        </td>
+                        {% if formset.can_delete %}
+                            <td style="text-align: center; vertical-align: top;">
+                                {% if stop_form.instance.pk %}
+                                    {{ stop_form.DELETE }}
+                                {% endif %}
+                            </td>
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div style="display: flex; gap: 0.8rem; justify-content: flex-end; margin-top: 1.5rem;">
+            <a href="{% url 'collecte:route_list' %}" class="btn">Annuler</a>
+            <button type="submit" class="btn btn-bleu">
+                💾 Enregistrer la tournée
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

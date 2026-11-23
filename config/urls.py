@@ -22,7 +22,7 @@ urlpatterns = [
     path('accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('accounts/signup/', SignUpView.as_view(), name='signup'),
     path('actualites/', include('actualites.urls')), # Module 5 - Ribel
-    # path('dechets/', include('dechets.urls')),   # Module 6 - Mahmoud
+    path('collecte/', include('agent_collect.urls')), # Module 6 - Mahmoud (Collecte)
 ]
 
 if settings.DEBUG:

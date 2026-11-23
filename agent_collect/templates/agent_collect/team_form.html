@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}Modifier l'équipe : {{ team.name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Modifier l'équipe de collecte</h1>
+        <p class="sous-titre">
+            Affectation et gestion des agents de collecte membres de l'équipe « {{ team.name }} ».
+        </p>
+    </div>
+    <div>
+        <a href="{% url 'collecte:route_list' %}" class="btn">← Retour au planning</a>
+    </div>
+</div>
+
+<div class="card" style="max-width: 650px; margin: 0 auto;">
+    <form method="post" class="formulaire" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="messages">
+                {% for error in form.non_field_errors %}
+                    <li class="error">{{ error }}</li>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <p>
+            <label for="{{ form.name.id_for_label }}">
+                {{ form.name.label }} <span style="color: var(--rouge);">*</span>
+            </label>
+            {{ form.name }}
+            {% if form.name.help_text %}
+                <span class="helptext">{{ form.name.help_text }}</span>
+            {% endif %}
+            {% if form.name.errors %}
+                <ul class="errorlist">{% for err in form.name.errors %}<li>{{ err }}</li>{% endfor %}</ul>
+            {% endif %}
+        </p>
+
+        <p>
+            <label for="{{ form.members.id_for_label }}">
+                {{ form.members.label }}
+            </label>
+            {{ form.members }}
+            {% if form.members.help_text %}
+                <span class="helptext">{{ form.members.help_text }}</span>
+            {% endif %}
+            {% if form.members.errors %}
+                <ul class="errorlist">{% for err in form.members.errors %}<li>{{ err }}</li>{% endfor %}</ul>
+            {% endif %}
+        </p>
+
+        <div style="display: flex; gap: 0.8rem; justify-content: flex-end; margin-top: 1.5rem;">
+            <a href="{% url 'collecte:route_list' %}" class="btn">Annuler</a>
+            <button type="submit" class="btn btn-bleu">
+                💾 Enregistrer les modifications
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
