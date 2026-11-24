@@ -1,13 +1,37 @@
-<div style="display:flex; flex-wrap:wrap; gap:0.5rem; align-items:center; justify-content:space-between; margin-bottom:1.5rem; padding-bottom:0.75rem; border-bottom:1px solid #e2e8f0;">
-    <div style="display:flex; flex-wrap:wrap; gap:0.5rem;">
-        <a href="{% url 'marches:list' %}" class="btn btn-petit">Emplacements</a>
-        {% if request.user.est_agent %}
-            <a href="{% url 'marches:liste_commercants' %}" class="btn btn-petit">Commerçants</a>
-            <a href="{% url 'marches:liste_demandes_permis' %}" class="btn btn-petit">Demandes de permis</a>
-            <a href="{% url 'marches:liste_permis' %}" class="btn btn-petit">Permis délivrés</a>
+<div style="display:flex; flex-wrap:wrap; gap:0.75rem; align-items:center; justify-content:space-between; margin-bottom:1.5rem; padding:0.75rem 1rem; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px;">
+    <div style="display:flex; flex-wrap:wrap; gap:0.5rem; align-items:center;">
+        {% if request.resolver_match.url_name == 'list' %}
+            <a href="{% url 'marches:list' %}" class="btn btn-petit" style="background:#1e3a8a; color:#fff; border-color:#1e3a8a;">Emplacements</a>
         {% else %}
-            <a href="{% url 'marches:mes_demandes' %}" class="btn btn-petit">Mes demandes & Permis</a>
-            <a href="{% url 'marches:soumettre_demande' %}" class="btn btn-petit">+ Demander un permis</a>
+            <a href="{% url 'marches:list' %}" class="btn btn-petit">Emplacements</a>
+        {% endif %}
+
+        {% if request.user.est_agent %}
+            {% if request.resolver_match.url_name == 'liste_commercants' %}
+                <a href="{% url 'marches:liste_commercants' %}" class="btn btn-petit" style="background:#1e3a8a; color:#fff; border-color:#1e3a8a;">Commerçants</a>
+            {% else %}
+                <a href="{% url 'marches:liste_commercants' %}" class="btn btn-petit">Commerçants</a>
+            {% endif %}
+
+            {% if request.resolver_match.url_name == 'liste_demandes_permis' %}
+                <a href="{% url 'marches:liste_demandes_permis' %}" class="btn btn-petit" style="background:#1e3a8a; color:#fff; border-color:#1e3a8a;">Demandes de permis</a>
+            {% else %}
+                <a href="{% url 'marches:liste_demandes_permis' %}" class="btn btn-petit">Demandes de permis</a>
+            {% endif %}
+
+            {% if request.resolver_match.url_name == 'liste_permis' %}
+                <a href="{% url 'marches:liste_permis' %}" class="btn btn-petit" style="background:#1e3a8a; color:#fff; border-color:#1e3a8a;">Permis délivrés</a>
+            {% else %}
+                <a href="{% url 'marches:liste_permis' %}" class="btn btn-petit">Permis délivrés</a>
+            {% endif %}
+        {% else %}
+            {% if request.resolver_match.url_name == 'mes_demandes' %}
+                <a href="{% url 'marches:mes_demandes' %}" class="btn btn-petit" style="background:#1e3a8a; color:#fff; border-color:#1e3a8a;">Mes demandes &amp; Permis</a>
+            {% else %}
+                <a href="{% url 'marches:mes_demandes' %}" class="btn btn-petit">Mes demandes &amp; Permis</a>
+            {% endif %}
+
+            <a href="{% url 'marches:soumettre_demande' %}" class="btn btn-petit" style="background:#1e3a8a; color:#fff; border-color:#1e3a8a;">+ Demander un permis</a>
         {% endif %}
     </div>
 </div>
